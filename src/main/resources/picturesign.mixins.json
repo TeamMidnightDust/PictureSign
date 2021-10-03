@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "eu.midnightdust.picturesign.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "client": [
+    "MixinSignBlockEntityRenderer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
