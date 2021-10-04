@@ -3,5 +3,6 @@
 	
 	"picturesign.midnightconfig.enabled":"Enabled",
 	"picturesign.midnightconfig.debug":"Send debug info",
-	"picturesign.midnightconfig.maxThreads":"Max download threads"
+	"picturesign.midnightconfig.maxThreads":"Max download threads",
+	"picturesign.midnightconfig.signRenderDistance":"Sign render distance"
 }

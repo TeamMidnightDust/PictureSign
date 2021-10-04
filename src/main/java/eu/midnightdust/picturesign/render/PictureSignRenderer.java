@@ -2,6 +2,8 @@ package eu.midnightdust.picturesign.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.picturesign.PictureDownloader;
+import net.coderbot.iris.Iris;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -87,7 +89,15 @@ public class PictureSignRenderer {
 
         matrixStack.push();
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        int l;
+        if (FabricLoader.getInstance().isModLoaded("iris") && Iris.getIrisConfig().areShadersEnabled() && Iris.getCurrentPack().isPresent()) {
+            RenderSystem.setShader(GameRenderer::getRenderTypeCutoutShader);
+            l = 230;
+        }
+        else {
+            RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
+            l = light;
+        }
         RenderSystem.setShaderTexture(0, data.identifier);
 
         RenderSystem.disableBlend();
@@ -98,19 +108,19 @@ public class PictureSignRenderer {
         matrixStack.multiply(yRotation);
 
         Matrix4f matrix4f = matrixStack.peek().getModel();
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT);
 
-        buffer.vertex(matrix4f, width, 0.0F, 1.0F).texture(1.0F, 1.0F).color(255, 255, 255, 255)
-                .light(light).overlay(overlay).next();
+        buffer.vertex(matrix4f, width, 0.0F, 1.0F).color(255, 255, 255, 255).texture(1.0F, 1.0F).light(l).overlay(overlay)
+                .next();
 
-        buffer.vertex(matrix4f, width, height, 1.0F).texture(1.0F, 0.0F).color(255, 255, 255, 255)
-                .light(light).overlay(overlay).next();
+        buffer.vertex(matrix4f, width, height, 1.0F).color(255, 255, 255, 255).texture(1.0F, 0.0F).light(l).overlay(overlay)
+                .next();
 
-        buffer.vertex(matrix4f, 0.0F, height, 1.0F).texture(0.0F, 0.0F).color(255, 255, 255, 255)
-                .light(light).overlay(overlay).next();
+        buffer.vertex(matrix4f, 0.0F, height, 1.0F).color(255, 255, 255, 255).texture(0.0F, 0.0F).light(l).overlay(overlay)
+                .next();
 
-        buffer.vertex(matrix4f, 0.0F, 0.0F, 1.0F).texture(0.0F, 1.0F).color(255, 255, 255, 255)
-                .light(light).overlay(overlay).next();
+        buffer.vertex(matrix4f, 0.0F, 0.0F, 1.0F).color(255, 255, 255, 255).texture(0.0F, 1.0F).light(l).overlay(overlay)
+                .next();
 
         tessellator.draw();
         matrixStack.pop();
