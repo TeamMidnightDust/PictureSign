@@ -1,0 +1,12 @@
+{
+	"picturesign.midnightconfig.title":"PictureSign Konfiguration",
+	
+	"picturesign.midnightconfig.enabled":"Aktiviert",
+	"picturesign.midnightconfig.debug":"Debuginformationen senden,
+	"picturesign.midnightconfig.maxThreads":"Maximale download threads",
+	"picturesign.midnightconfig.signRenderDistance":"Schildrenderdistanz",
+	"picturesign.midnightconfig.safeMode":"Sicherer Modus",
+	"picturesign.midnightconfig.safeMode.tooltip":"Nur Bilder von imgur.com und imgbb.com laden",
+	"picturesign.midnightconfig.ebeWarning":"§cWenn du die Mod 'Enhanced Block Entities' nutzt,",
+	"picturesign.midnightconfig.ebeWarning2":"§cversichere dich, alles im Bezug zu Schildern zu deaktivieren!"
+}
