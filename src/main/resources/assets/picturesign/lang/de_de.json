@@ -2,7 +2,7 @@
 	"picturesign.midnightconfig.title":"PictureSign Konfiguration",
 	
 	"picturesign.midnightconfig.enabled":"Aktiviert",
-	"picturesign.midnightconfig.debug":"Debuginformationen senden,
+	"picturesign.midnightconfig.debug":"Debuginformationen senden",
 	"picturesign.midnightconfig.maxThreads":"Maximale download threads",
 	"picturesign.midnightconfig.signRenderDistance":"Schildrenderdistanz",
 	"picturesign.midnightconfig.safeMode":"Sicherer Modus",
