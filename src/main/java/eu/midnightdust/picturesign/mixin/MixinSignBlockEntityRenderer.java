@@ -33,4 +33,9 @@ public abstract class MixinSignBlockEntityRenderer implements BlockEntityRendere
     public int getRenderDistance() {
         return PictureSignConfig.signRenderDistance;
     }
+    @Unique
+    @Override
+    public boolean rendersOutsideBoundingBox(SignBlockEntity sign) {
+        return PictureSignConfig.enabled && sign.getTextOnRow(0, false).getString().matches("(!PS:.*)");
+    }
 }

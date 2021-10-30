@@ -2,16 +2,16 @@ package eu.midnightdust.picturesign.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.picturesign.PictureDownloader;
+import eu.midnightdust.picturesign.config.PictureSignConfig;
 import net.coderbot.iris.Iris;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Quaternion;
-import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.*;
+import net.minecraft.world.World;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +29,13 @@ public class PictureSignRenderer {
             url = "https://" + url;
         }
         if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
+        if (PictureSignConfig.safeMode && !url.contains("//i.imgur.com/") && !url.contains("//i.ibb.co/")) return;
+        World world = signBlockEntity.getWorld();
+        BlockPos pos = signBlockEntity.getPos();
+        if (world != null && (world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH)) && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)) return;
+        if (world != null && (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH)) && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)) return;
+
+
         String lastLine = signBlockEntity.getTextOnRow(3, false).getString();
 
         if (!lastLine.matches("(.*\\d:.*\\d:.*\\d:.*\\d:.*\\d)")) return;

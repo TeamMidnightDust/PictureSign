@@ -4,5 +4,9 @@
 	"picturesign.midnightconfig.enabled":"Enabled",
 	"picturesign.midnightconfig.debug":"Send debug info",
 	"picturesign.midnightconfig.maxThreads":"Max download threads",
-	"picturesign.midnightconfig.signRenderDistance":"Sign render distance"
+	"picturesign.midnightconfig.signRenderDistance":"Sign render distance",
+	"picturesign.midnightconfig.safeMode":"Safe mode",
+	"picturesign.midnightconfig.safeMode.tooltip":"Only load images from imgur.com and imgbb.com",
+	"picturesign.midnightconfig.ebeWarning":"§cIf you are using the mod 'Enhanced Block Entities'",
+	"picturesign.midnightconfig.ebeWarning2":"§cmake sure to disable anything sign-related in it's config!"
 }
