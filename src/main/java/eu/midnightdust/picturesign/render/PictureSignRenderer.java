@@ -3,8 +3,8 @@ package eu.midnightdust.picturesign.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.picturesign.PictureDownloader;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
-import net.coderbot.iris.Iris;
 import net.fabricmc.loader.api.FabricLoader;
+import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.render.*;
@@ -94,12 +94,12 @@ public class PictureSignRenderer {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
 
-        matrixStack.push();
+
 
         int l;
-        if (FabricLoader.getInstance().isModLoaded("iris") && Iris.getIrisConfig().areShadersEnabled() && Iris.getCurrentPack().isPresent()) {
+        if (FabricLoader.getInstance().isModLoaded("iris") && IrisApi.getInstance().isShaderPackInUse()) {
             RenderSystem.setShader(GameRenderer::getRenderTypeCutoutShader);
-            l = 230;
+            l = 15728880;
         }
         else {
             RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
@@ -107,10 +107,11 @@ public class PictureSignRenderer {
         }
         RenderSystem.setShaderTexture(0, data.identifier);
 
-        RenderSystem.disableBlend();
+        RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
 
+        matrixStack.push();
         matrixStack.translate(xOffset + x, 0.00F + y, zOffset + z);
         matrixStack.multiply(yRotation);
 
@@ -131,6 +132,7 @@ public class PictureSignRenderer {
 
         tessellator.draw();
         matrixStack.pop();
+        RenderSystem.disableBlend();
 
         RenderSystem.disableDepthTest();
     }
