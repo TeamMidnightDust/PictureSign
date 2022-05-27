@@ -1,0 +1,18 @@
+{
+	"picturesign.midnightconfig.title":"PictureSign Konfiguration",
+	
+	"picturesign.midnightconfig.enabled":"Aktiviere Bilder",
+	"picturesign.midnightconfig.translucency":"Aktiviere Lichtdurchlässigkeit",
+	"picturesign.midnightconfig.translucency.tooltip":"Lichtdurchlässigkeit funktioniert teilweise nicht richtig\nbei Block-Entities (und dementsprechend Schildern)",
+	"picturesign.midnightconfig.helperUi":"Aktiviere Hilfsoberfäche",
+	"picturesign.midnightconfig.exceedVanillaLineLength":"Überschreite die Vanilla Zeilenlänge",
+	"picturesign.midnightconfig.debug":"Debug-Modus",
+	"picturesign.midnightconfig.maxThreads":"Maximale Download-Threads",
+	"picturesign.midnightconfig.signRenderDistance":"Schildsichtweite",
+	"picturesign.midnightconfig.safeMode":"Sicherer Modus",
+	"picturesign.midnightconfig.safeMode.tooltip":"Lädt nur Bilder von vertrauten Seiten",
+	"picturesign.midnightconfig.ebeWarning":"§cWenn du die Mod 'Enhanced Block Entities' benutzt, stelle sicher,",
+	"picturesign.midnightconfig.ebeWarning2":"§cdass du alles in Relation zu Schildern in der EBE Config deaktiviert hast!",
+	"key.picturesign.copy_sign": "Text eines Schildes kopieren",
+	"key.picturesign.edit_sign":"Schild bearbeiten"
+}

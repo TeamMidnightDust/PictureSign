@@ -3,7 +3,8 @@
   "package": "eu.midnightdust.picturesign.mixin",
   "compatibilityLevel": "JAVA_16",
   "client": [
-    "MixinSignBlockEntityRenderer"
+    "MixinSignBlockEntityRenderer",
+    "MixinSignEditScreen"
   ],
   "injectors": {
     "defaultRequire": 1

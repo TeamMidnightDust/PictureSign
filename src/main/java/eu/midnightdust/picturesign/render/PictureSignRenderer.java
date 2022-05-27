@@ -3,6 +3,7 @@ package eu.midnightdust.picturesign.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.picturesign.PictureDownloader;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.block.Blocks;
@@ -19,21 +20,20 @@ import java.util.List;
 public class PictureSignRenderer {
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay) {
-        String text = signBlockEntity.getTextOnRow(0, false).getString() +
-                signBlockEntity.getTextOnRow(1, false).getString() +
-                signBlockEntity.getTextOnRow(2, false).getString();
-        String url = text.replaceAll("!PS:", "").replaceAll(" ","");
-        if (url.contains("imgur:")) url = url.replace("imgur:", "https://i.imgur.com/");
-        if (url.contains("imgbb:")) url = url.replace("imgbb:", "https://i.ibb.co/");
-        if (!url.contains("https://") && !url.contains("http://")) {
+        String url = PictureURLUtils.getLink(signBlockEntity);
+        if (!url.startsWith("https://") && !url.startsWith("http://")) {
             url = "https://" + url;
         }
         if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
-        if (PictureSignConfig.safeMode && !url.contains("//i.imgur.com/") && !url.contains("//i.ibb.co/")) return;
+        if (PictureSignConfig.safeMode && !url.startsWith("https://i.imgur.com/") && !url.startsWith("https://i.ibb.co/")
+                && !url.startsWith("https://pictshare.net/") && !url.startsWith("https://iili.io/"))
+            return;
         World world = signBlockEntity.getWorld();
         BlockPos pos = signBlockEntity.getPos();
-        if (world != null && (world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH)) && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)) return;
-        if (world != null && (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH)) && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)) return;
+        if (world != null && (world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
+                && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)) return;
+        if (world != null && (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
+                && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)) return;
 
 
         String lastLine = signBlockEntity.getTextOnRow(3, false).getString();
@@ -107,7 +107,8 @@ public class PictureSignRenderer {
         }
         RenderSystem.setShaderTexture(0, data.identifier);
 
-        RenderSystem.enableBlend();
+        if (PictureSignConfig.translucency) RenderSystem.enableBlend();
+        else RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
 
