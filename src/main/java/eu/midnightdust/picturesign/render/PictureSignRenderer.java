@@ -116,7 +116,7 @@ public class PictureSignRenderer {
         matrixStack.translate(xOffset + x, 0.00F + y, zOffset + z);
         matrixStack.multiply(yRotation);
 
-        Matrix4f matrix4f = matrixStack.peek().getModel();
+        Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT);
 
         buffer.vertex(matrix4f, width, 0.0F, 1.0F).color(255, 255, 255, 255).texture(1.0F, 1.0F).light(l).overlay(overlay)

@@ -34,10 +34,10 @@ public class PictureSignClient implements ClientModInitializer {
             if (client.crosshairTarget.getType() == HitResult.Type.BLOCK && client.world.getBlockState(new BlockPos(client.crosshairTarget.getPos())).hasBlockEntity()) {
                 if (client.world.getBlockEntity(new BlockPos(client.crosshairTarget.getPos())) instanceof SignBlockEntity) {
                     SignBlockEntity sign = (SignBlockEntity) client.world.getBlockEntity(new BlockPos(client.crosshairTarget.getPos()));
-                    clipboard[0] = sign.getTextOnRow(0, false).asString();
-                    clipboard[1] = sign.getTextOnRow(1, false).asString();
-                    clipboard[2] = sign.getTextOnRow(2, false).asString();
-                    clipboard[3] = sign.getTextOnRow(3, false).asString();
+                    clipboard[0] = sign.getTextOnRow(0, false).getString();
+                    clipboard[1] = sign.getTextOnRow(1, false).getString();
+                    clipboard[2] = sign.getTextOnRow(2, false).getString();
+                    clipboard[3] = sign.getTextOnRow(3, false).getString();
                 }
             }
         });
