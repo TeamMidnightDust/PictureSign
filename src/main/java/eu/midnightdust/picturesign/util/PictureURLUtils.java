@@ -23,7 +23,7 @@ public class PictureURLUtils {
         if (url.startsWith("i.imgur.com/")) url = url.replaceFirst("\\Qi.imgur.com/\\E", "imgur:");
         if (url.startsWith("i.ibb.co/:")) url = url.replaceFirst("\\Qi.ibb.co/\\E", "imgbb:");
         if (url.startsWith("iili.io/")) url = url.replaceFirst("\\Qiili.io/\\E", "iili:");
-        if (url.startsWith("discord:")) url = url.replaceFirst("\\Qiili.io/\\E", "discord:");
+        if (url.startsWith("cdn.discordapp.com/attachments/")) url = url.replaceFirst("\\Qcdn.discordapp.com/attachments/\\E", "discord:");
         return url;
     }
 }
