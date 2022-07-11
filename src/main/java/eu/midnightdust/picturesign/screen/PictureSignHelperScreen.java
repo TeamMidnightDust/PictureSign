@@ -100,7 +100,7 @@ public class PictureSignHelperScreen extends Screen {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
                 if (sign.getTextOnRow(3, false).getString().split(":").length > i)
-                dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
+                    dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
             }
             dimensions[0] = s;
             StringBuilder mergedDimensions = new StringBuilder();
@@ -111,7 +111,7 @@ public class PictureSignHelperScreen extends Screen {
             }
             sign.setTextOnRow(3, Text.of(String.valueOf(mergedDimensions)));
             text = IntStream.range(0, 4).mapToObj((row) ->
-            sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
         widthWidget.setText(initialDimensions[0]);
         this.addDrawableChild(widthWidget);
