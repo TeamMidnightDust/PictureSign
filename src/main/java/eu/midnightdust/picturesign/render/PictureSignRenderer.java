@@ -26,7 +26,7 @@ public class PictureSignRenderer {
         }
         if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
         if (PictureSignConfig.safeMode && !url.startsWith("https://i.imgur.com/") && !url.startsWith("https://i.ibb.co/")
-                && !url.startsWith("https://pictshare.net/") && !url.startsWith("https://iili.io/"))
+                && !url.startsWith("https://pictshare.net/") && !url.startsWith("https://iili.io/") && !url.startsWith("https://cdn.discordapp.com/") && !url.startsWith("https://media.discordapp.net/"))
             return;
         World world = signBlockEntity.getWorld();
         BlockPos pos = signBlockEntity.getPos();

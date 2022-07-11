@@ -82,8 +82,7 @@ public class PictureSignHelperScreen extends Screen {
             Objects.requireNonNull(client).setScreen(new SignEditScreen(this.sign,false));
         }, Text.of("")));
         TextFieldWidget linkWidget = new TextFieldWidget(textRenderer,this.width / 2 - 175,this.height / 5 + 13,210,40, Text.of("url"));
-        linkWidget.setMaxLength(90);
-        linkWidget.setText(PictureURLUtils.getLink(sign));
+        linkWidget.setMaxLength(2048);
         linkWidget.setChangedListener(s -> {
             String[] lines = breakLink(PictureURLUtils.shortenLink(s));
             sign.setTextOnRow(0, Text.of(lines[0]));
@@ -93,15 +92,15 @@ public class PictureSignHelperScreen extends Screen {
             text = IntStream.range(0, 4).mapToObj((row) ->
                     sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
+        linkWidget.setText(PictureURLUtils.getLink(sign));
         this.addDrawableChild(linkWidget);
         String[] initialDimensions = sign.getTextOnRow(3, false).getString().split(":");
         TextFieldWidget widthWidget = new TextFieldWidget(textRenderer,this.width / 2 - 175,this.height / 5 + 70,30,20, Text.of("width"));
-        widthWidget.setText(initialDimensions[0]);
         widthWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
                 if (sign.getTextOnRow(3, false).getString().split(":").length > i)
-                    dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
+                dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
             }
             dimensions[0] = s;
             StringBuilder mergedDimensions = new StringBuilder();
@@ -112,11 +111,11 @@ public class PictureSignHelperScreen extends Screen {
             }
             sign.setTextOnRow(3, Text.of(String.valueOf(mergedDimensions)));
             text = IntStream.range(0, 4).mapToObj((row) ->
-                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+            sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
+        widthWidget.setText(initialDimensions[0]);
         this.addDrawableChild(widthWidget);
         TextFieldWidget heightWidget = new TextFieldWidget(textRenderer,this.width / 2 - 140,this.height / 5 + 70,30,20, Text.of("height"));
-        heightWidget.setText(initialDimensions[1]);
         heightWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
@@ -134,9 +133,9 @@ public class PictureSignHelperScreen extends Screen {
             text = IntStream.range(0, 4).mapToObj((row) ->
                     sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
+        heightWidget.setText(initialDimensions[1]);
         this.addDrawableChild(heightWidget);
         TextFieldWidget posXWidget = new TextFieldWidget(textRenderer,this.width / 2 - 105,this.height / 5 + 70,30,20, Text.of("posX"));
-        posXWidget.setText(initialDimensions[2]);
         posXWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
@@ -154,9 +153,9 @@ public class PictureSignHelperScreen extends Screen {
             text = IntStream.range(0, 4).mapToObj((row) ->
                     sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
+        posXWidget.setText(initialDimensions[2]);
         this.addDrawableChild(posXWidget);
         TextFieldWidget posYWidget = new TextFieldWidget(textRenderer,this.width / 2 - 70,this.height / 5 + 70,30,20, Text.of("posY"));
-        posYWidget.setText(initialDimensions[3]);
         posYWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
@@ -174,9 +173,9 @@ public class PictureSignHelperScreen extends Screen {
             text = IntStream.range(0, 4).mapToObj((row) ->
                     sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
+        posYWidget.setText(initialDimensions[3]);
         this.addDrawableChild(posYWidget);
         TextFieldWidget posZWidget = new TextFieldWidget(textRenderer,this.width / 2 - 35,this.height / 5 + 70,30,20, Text.of("posZ"));
-        posZWidget.setText(initialDimensions[4]);
         posZWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
@@ -194,6 +193,7 @@ public class PictureSignHelperScreen extends Screen {
             text = IntStream.range(0, 4).mapToObj((row) ->
                     sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
+        posZWidget.setText(initialDimensions[4]);
         this.addDrawableChild(posZWidget);
         this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), SignBlockEntityRenderer.getSignType(sign.getCachedState().getBlock()));
     }
@@ -250,7 +250,7 @@ public class PictureSignHelperScreen extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         DiffuseLighting.disableGuiDepthLighting();
         this.renderBackground(matrices);
-        drawTextWithShadow(matrices,textRenderer, Text.of("Link" + (PictureSignConfig.safeMode ? " (imgur.com/imgbb.com/iili.io/pictshare.net)" : "")),this.width / 2 - 175, this.height / 5 + 3, -8816268);
+        drawTextWithShadow(matrices,textRenderer, Text.of("Link" + (PictureSignConfig.safeMode ? " (imgur.com/imgbb.com/iili.io/pictshare.net/cdn.discordapp.com/media.discordapp.net)" : "")),this.width / 2 - 175, this.height / 5 + 3, -8816268);
         drawTextWithShadow(matrices,textRenderer, Text.of("Width"),this.width / 2 - 175, this.height / 5 + 60, -8816268);
         drawTextWithShadow(matrices,textRenderer, Text.of("Height"),this.width / 2 - 140, this.height / 5 + 60, -8816268);
         drawTextWithShadow(matrices,textRenderer, Text.of("PosX"),this.width / 2 - 105, this.height / 5 + 60, -8816268);
