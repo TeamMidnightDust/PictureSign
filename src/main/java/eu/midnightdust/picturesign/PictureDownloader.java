@@ -82,6 +82,22 @@ public class PictureDownloader {
             return;
         }
 
+        if (url.startsWith("rp:")) {
+            String realIdentifierPath = url.replace("rp:", "");
+            if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Started loading resource pack picture: " + url);
+
+            this.cache.put(url, new PictureData(url));
+            service.submit(() -> {
+                synchronized (mutex) {
+                    PictureData data = this.cache.get(url);
+                    data.identifier = new Identifier(realIdentifierPath);
+                }
+            });
+
+            if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished loading resource pack picture: " + url);
+            return;
+        }
+
         if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Started downloading picture: " + url);
         this.cache.put(url, new PictureData(url));
 

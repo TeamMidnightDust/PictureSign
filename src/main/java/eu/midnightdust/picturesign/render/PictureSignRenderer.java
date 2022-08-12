@@ -21,7 +21,7 @@ public class PictureSignRenderer {
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay) {
         String url = PictureURLUtils.getLink(signBlockEntity);
-        if (!url.startsWith("https://") && !url.startsWith("http://") && !url.startsWith("file:")) {
+        if (!url.startsWith("https://") && !url.startsWith("http://") && !url.startsWith("file:") && !url.startsWith("rp:")) {
             url = "https://" + url;
         }
         if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
