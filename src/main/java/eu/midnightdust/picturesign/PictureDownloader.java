@@ -59,6 +59,29 @@ public class PictureDownloader {
 
     // Download the image and save it in cache
     private void downloadPicture(String url) {
+        if (url.startsWith("file:")) {
+            String realPath = url.replace("file:", "");
+            if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Started loading local picture: " + url);
+
+            this.cache.put(url, new PictureData(url));
+            service.submit(() -> {
+                try {
+                    File file = new File(realPath);
+                    Identifier texture =  convert2png(file);
+                    synchronized (mutex) {
+                        PictureData data = this.cache.get(url);
+                        data.identifier = texture;
+                    }
+
+                } catch (IOException error) {
+                    PictureSignClient.LOGGER.error("Error loading local picture: " + error);
+                }
+            });
+
+            if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished loading local picture: " + url);
+            return;
+        }
+
         if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Started downloading picture: " + url);
         this.cache.put(url, new PictureData(url));
 
@@ -77,20 +100,7 @@ public class PictureDownloader {
                 }
 
                 out.close();
-
-                // Convert to png
-                BufferedImage bufferedImage = ImageIO.read(file);
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
-
-                InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-
-                NativeImage nativeImage = NativeImage.read(inputStream);
-                NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(nativeImage);
-
-                Identifier texture = MinecraftClient.getInstance().getTextureManager().registerDynamicTexture("picturesign/image",
-                        nativeImageBackedTexture);
+                Identifier texture = convert2png(file);
 
                 // Cache the downloaded picture
                 synchronized (mutex) {
@@ -104,6 +114,21 @@ public class PictureDownloader {
                 PictureSignClient.LOGGER.error("Error downloading picture: " + error);
             }
         });
+    }
+
+    private static Identifier convert2png(File file) throws IOException {
+        BufferedImage bufferedImage = ImageIO.read(file);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+
+        InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+
+        NativeImage nativeImage = NativeImage.read(inputStream);
+        NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(nativeImage);
+
+        return MinecraftClient.getInstance().getTextureManager().registerDynamicTexture("picturesign/image",
+                nativeImageBackedTexture);
     }
 }
 
