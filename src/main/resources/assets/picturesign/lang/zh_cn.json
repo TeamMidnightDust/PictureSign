@@ -3,7 +3,7 @@
 	
 	"picturesign.midnightconfig.enabled":"启用图片",
 	"picturesign.midnightconfig.translucency":"启用半透明性",
-	"picturesign.midnightconfig.translucency.tooltip":"半透明性对于方块实体\n不能很好的奏效",
+	"picturesign.midnightconfig.translucency.tooltip":"半透明性对于方块实体不能很好的奏效\n（因而，告示牌）",
 	"picturesign.midnightconfig.helperUi":"启用帮手界面",
 	"picturesign.midnightconfig.exceedVanillaLineLength":"超出原版行宽",
 	"picturesign.midnightconfig.debug":"调试模式",
