@@ -1,0 +1,19 @@
+{
+	"picturesign.midnightconfig.title":"图示牌配置",
+	
+	"picturesign.midnightconfig.enabled":"启用图片",
+	"picturesign.midnightconfig.translucency":"启用半透明性",
+	"picturesign.midnightconfig.translucency.tooltip":"半透明性对于方块实体\n不能很好的奏效",
+	"picturesign.midnightconfig.helperUi":"启用帮手界面",
+	"picturesign.midnightconfig.exceedVanillaLineLength":"超出原版行宽",
+	"picturesign.midnightconfig.debug":"调试模式",
+	"picturesign.midnightconfig.maxThreads":"最大下载线程",
+	"picturesign.midnightconfig.signRenderDistance":"告示牌渲染距离",
+	"picturesign.midnightconfig.safeMode":"安全模式",
+	"picturesign.midnightconfig.safeMode.tooltip":"仅加载来自受信任供应者的图像",
+	"picturesign.midnightconfig.ebeWarning":"§c如果你正在使用'方块实体优化'Mod",
+	"picturesign.midnightconfig.ebeWarning2":"§c请确保在它的配置文件中禁用了所有与告示牌有关的特性!",
+	"key.picturesign.copy_sign":"从告示牌上复制文本",
+	"key.picturesign.edit_sign":"编辑告示牌",
+	"key.categories.picturesign":"图示牌"
+}
