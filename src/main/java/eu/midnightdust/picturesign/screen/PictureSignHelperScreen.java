@@ -1,10 +1,10 @@
 package eu.midnightdust.picturesign.screen;
 
-import eu.midnightdust.lib.util.MidnightColorUtil;
 import eu.midnightdust.lib.util.screen.TexturedOverlayButtonWidget;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
+import net.minecraft.block.AbstractSignBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SignBlock;
 import net.minecraft.block.entity.SignBlockEntity;
@@ -21,7 +21,7 @@ import net.minecraft.network.packet.c2s.play.UpdateSignC2SPacket;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
+import org.joml.Matrix4f;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -47,9 +47,7 @@ public class PictureSignHelperScreen extends Screen {
         if (!sign.getTextOnRow(0, false).getString().startsWith("!PS:")) sign.setTextOnRow(0, Text.of("!PS:"));
         text = IntStream.range(0, 4).mapToObj((row) ->
                 sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
-        this.addDrawableChild(new ButtonWidget(this.width / 2 - 100, this.height / 4 + 120, 200, 20, ScreenTexts.DONE, (button) -> {
-            this.finishEditing();
-        }));
+        this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, (button -> this.finishEditing())).dimensions(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build());
 
         if (PictureSignClient.clipboard != null && PictureSignClient.clipboard[0] != null)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 84, this.height - 40, 20, 20, 0, 0, 20, CLIPBOARD_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
@@ -195,7 +193,7 @@ public class PictureSignHelperScreen extends Screen {
                     sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
         });
         this.addDrawableChild(posZWidget);
-        this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), SignBlockEntityRenderer.getSignType(sign.getCachedState().getBlock()));
+        this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), AbstractSignBlock.getSignType(sign.getCachedState().getBlock()));
     }
     public void removed() {
         ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
@@ -269,7 +267,7 @@ public class PictureSignHelperScreen extends Screen {
         matrices.push();
         matrices.scale(0.6666667F, -0.6666667F, -0.6666667F);
         VertexConsumerProvider.Immediate immediate = this.client.getBufferBuilders().getEntityVertexConsumers();
-        SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getSignTextureId(SignBlockEntityRenderer.getSignType(sign.getCachedState().getBlock()));
+        SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getSignTextureId(AbstractSignBlock.getSignType(sign.getCachedState().getBlock()));
         SignBlockEntityRenderer.SignModel var10002 = this.model;
         Objects.requireNonNull(var10002);
         VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(immediate, var10002::getLayer);
