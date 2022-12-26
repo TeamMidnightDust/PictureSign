@@ -4,6 +4,7 @@ import eu.midnightdust.lib.util.MidnightColorUtil;
 import eu.midnightdust.lib.util.screen.TexturedOverlayButtonWidget;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SignBlock;
@@ -77,19 +78,23 @@ public class PictureSignHelperScreen extends Screen {
             Objects.requireNonNull(client).setScreen(new SignEditScreen(this.sign,false));
         }, Text.of("")));
         this.addDrawableChild(new ButtonWidget(this.width / 2,this.height / 5 + 70,40,20, Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")), (buttonWidget) -> {
-            if (text[0].startsWith("!PS")) text[0] = "!VS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
-            else if (text[0].startsWith("!VS")) text[0] = "!LS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
-            else if (text[0].startsWith("!LS")) text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
+            if (text[0].startsWith("!PS:")) text[0] = "!VS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
+            else if (text[0].startsWith("!VS:")) text[0] = "!LS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
+            else if (text[0].startsWith("!LS:")) text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
             else text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
             buttonWidget.setMessage(Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")));
 
             sign.setTextOnRow(0, Text.of(text[0]));
         }));
-        TextFieldWidget linkWidget = new TextFieldWidget(textRenderer,this.width / 2 - 175,this.height / 5 + 13,210,40, Text.of("url"));
+        TextFieldWidget linkWidget = new TextFieldWidget(textRenderer,this.width / 2 - 175,this.height / 5 + 13,215,40, Text.of("url"));
         linkWidget.setMaxLength(900);
         linkWidget.setText(PictureURLUtils.getLink(sign));
         linkWidget.setChangedListener(s -> {
-            String[] lines = breakLink(PictureURLUtils.shortenLink(s));
+            String prefix = "";
+            if (text[0].startsWith("!PS:")) prefix = "!PS:";
+            else if (text[0].startsWith("!VS:")) prefix = "!VS:";
+            else if (text[0].startsWith("!LS:")) prefix = "!LS:";
+            String[] lines = breakLink(prefix, PictureURLUtils.shortenLink(s));
             for (int i = 0; i < 3; i++) {
                 text[i] = lines[i];
                 sign.setTextOnRow(i, Text.of(text[i]));
@@ -203,8 +208,8 @@ public class PictureSignHelperScreen extends Screen {
             clientPlayNetworkHandler.sendPacket(new UpdateSignC2SPacket(this.sign.getPos(), this.text[0], this.text[1], this.text[2], this.text[3]));
         }
     }
-    private String[] breakLink(String link) {
-        Text linkText = Text.of("!PS:"+link);
+    private String[] breakLink(String prefix, String link) {
+        Text linkText = Text.of(prefix+link);
         String[] brokenLink = new String[3];
         Text line0Text = linkText;
         int line0width = line0Text.getString().length();

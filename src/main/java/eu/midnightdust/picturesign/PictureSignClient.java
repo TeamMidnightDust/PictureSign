@@ -4,6 +4,7 @@ import com.igrium.videolib.VideoLib;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.render.PictureSignRenderer;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -30,11 +31,16 @@ public class PictureSignClient implements ClientModInitializer {
         PictureSignConfig.init("picturesign", PictureSignConfig.class);
 
         KeyBindingHelper.registerKeyBinding(BINDING_COPY_SIGN);
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+        ClientLoginConnectionEvents.DISCONNECT.register((handler, client) -> {
             PictureSignRenderer.videoPlayers.forEach(id -> {
                 VideoLib.getInstance().getVideoManager().closePlayer(id);
                 PictureSignRenderer.videoPlayers.remove(id);
             });
+        });
+        ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
+            BlockPos pos = blockEntity.getPos();
+            VideoLib.getInstance().getVideoManager().closePlayer(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
+            PictureSignRenderer.videoPlayers.remove(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
