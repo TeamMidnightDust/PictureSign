@@ -1,8 +1,6 @@
 package eu.midnightdust.picturesign.render;
 
 import com.igrium.videolib.VideoLib;
-import com.igrium.videolib.api.VideoHandle;
-import com.igrium.videolib.api.VideoHandleFactory;
 import com.igrium.videolib.api.VideoManager;
 import com.igrium.videolib.api.VideoPlayer;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -15,9 +13,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.SignBlockEntity;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
-import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
@@ -31,6 +27,7 @@ import java.util.List;
 
 public class PictureSignRenderer {
     VideoManager videoManager = VideoLib.getInstance().getVideoManager();
+    public static List<Identifier> videoPlayers = new ArrayList<>();
     List<BlockPos> playedOnce = new ArrayList<>();
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay) {
@@ -85,10 +82,13 @@ public class PictureSignRenderer {
         }
         else if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO) || PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
             videoPlayer = videoManager.getOrCreate(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
+            videoPlayers.add(videoPlayer.getId());
             try {
                 if (PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
-                    if (!videoPlayer.getMediaInterface().hasMedia())
+                    if (!videoPlayer.getMediaInterface().hasMedia()) {
                         videoPlayer.getMediaInterface().play(url);
+                        videoPlayer.getControlsInterface().setRepeat(true);
+                    }
                 }
                 else if (!videoPlayer.getMediaInterface().hasMedia() && !playedOnce.contains(pos))
                     videoPlayer.getMediaInterface().play(url);
@@ -152,12 +152,13 @@ public class PictureSignRenderer {
         }
         else if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO) || PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
             assert videoPlayer != null;
-            TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-            if (videoPlayer.getTexture() != null && videoPlayer.getCodecInterface().getFrameRate() > 1 && textureManager.getTexture(videoPlayer.getTexture()) != null && textureManager.getTexture(videoPlayer.getTexture()).getGlId() != 0)
+            //TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+            //if (videoPlayer.getTexture() != null && videoPlayer.getCodecInterface().getFrameRate() > 1 && textureManager.getTexture(videoPlayer.getTexture()) != null && textureManager.getTexture(videoPlayer.getTexture()).getGlId() != 0)
                 texture = videoPlayer.getTexture();
-            else texture = new Identifier("picturesign", "textures/black.png");
+            //else texture = new Identifier("picturesign", "textures/black.png");
         }
         else return;
+        RenderSystem.setShaderTexture(0, new Identifier("picturesign", "textures/black.png"));
         RenderSystem.setShaderTexture(0, texture);
 
         if (PictureSignConfig.translucency) RenderSystem.enableBlend();
