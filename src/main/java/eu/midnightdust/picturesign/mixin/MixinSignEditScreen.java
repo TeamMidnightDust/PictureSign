@@ -35,25 +35,17 @@ public abstract class MixinSignEditScreen extends Screen {
     private void picturesign$init(CallbackInfo ci) {
         if (PictureSignClient.clipboard != null && PictureSignClient.clipboard[0] != null)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 84, this.height - 40, 20, 20, 0, 0, 20, CLIPBOARD_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
-                sign.setTextOnRow(0, Text.of(PictureSignClient.clipboard[0]));
-                sign.setTextOnRow(1, Text.of(PictureSignClient.clipboard[1]));
-                sign.setTextOnRow(2, Text.of(PictureSignClient.clipboard[2]));
-                sign.setTextOnRow(3, Text.of(PictureSignClient.clipboard[3]));
-                text[0] = PictureSignClient.clipboard[0];
-                text[1] = PictureSignClient.clipboard[1];
-                text[2] = PictureSignClient.clipboard[2];
-                text[3] = PictureSignClient.clipboard[3];
+                for (int i = 0; i < 4; i++) {
+                    text[i] = PictureSignClient.clipboard[i];
+                    sign.setTextOnRow(i, Text.of(text[i]));
+                }
             }, Text.of("")));
         if (PictureSignConfig.helperUi)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 62, this.height - 40, 20, 20, 0, 0, 20, TRASHBIN_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
-                sign.setTextOnRow(0, Text.of(""));
-                sign.setTextOnRow(1, Text.of(""));
-                sign.setTextOnRow(2, Text.of(""));
-                sign.setTextOnRow(3, Text.of(""));
-                text[0] = "";
-                text[1] = "";
-                text[2] = "";
-                text[3] = "";
+                for (int i = 0; i < 4; i++) {
+                    text[i] = "";
+                    sign.setTextOnRow(i, Text.empty());
+                }
             }, Text.of("")));
         if (PictureSignConfig.helperUi)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 40, this.height - 40, 20, 20, 0, 0, 20, PICTURESIGN_ICON_TEXTURE, 32, 64, (buttonWidget) -> {

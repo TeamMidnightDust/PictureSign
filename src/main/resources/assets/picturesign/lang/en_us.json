@@ -2,6 +2,7 @@
 	"picturesign.midnightconfig.title":"PictureSign Config",
 	
 	"picturesign.midnightconfig.enabled":"Enable Pictures",
+	"picturesign.midnightconfig.enableVideoSigns":"Enable Videos",
 	"picturesign.midnightconfig.translucency":"Enable Translucency",
 	"picturesign.midnightconfig.translucency.tooltip":"Translucency doesn't work too great on block entities\n(and therefore signs)",
 	"picturesign.midnightconfig.helperUi":"Enable Helper UI",

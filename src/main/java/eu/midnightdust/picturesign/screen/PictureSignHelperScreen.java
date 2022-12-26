@@ -43,37 +43,32 @@ public class PictureSignHelperScreen extends Screen {
     protected void init() {
         super.init();
         sign.setEditable(false);
-        if (!sign.getTextOnRow(3,false).getString().matches("(.*\\d:.*\\d:.*\\d:.*\\d:.*\\d)")) sign.setTextOnRow(3, Text.of("1:1:0:0:0"));
-        if (!sign.getTextOnRow(0, false).getString().startsWith("!PS:")) sign.setTextOnRow(0, Text.of("!PS:"));
         text = IntStream.range(0, 4).mapToObj((row) ->
                 sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+        if (!text[3].matches("(.*\\d:.*\\d:.*\\d:.*\\d:.*\\d)")) text[3] = "1:1:0:0:0";
+        if (!text[0].startsWith("!PS:") && !text[0].startsWith("!VS:") && !text[0].startsWith("!LS:")) text[0] = "!PS:"+text[0];
+        for (int i = 0; i < 3; i++) {
+            sign.setTextOnRow(i, Text.of(text[i]));
+        }
         this.addDrawableChild(new ButtonWidget(this.width / 2 - 100, this.height / 4 + 120, 200, 20, ScreenTexts.DONE, (button) -> {
             this.finishEditing();
         }));
 
         if (PictureSignClient.clipboard != null && PictureSignClient.clipboard[0] != null)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 84, this.height - 40, 20, 20, 0, 0, 20, CLIPBOARD_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
-                sign.setTextOnRow(0, Text.of(PictureSignClient.clipboard[0]));
-                sign.setTextOnRow(1, Text.of(PictureSignClient.clipboard[1]));
-                sign.setTextOnRow(2, Text.of(PictureSignClient.clipboard[2]));
-                sign.setTextOnRow(3, Text.of(PictureSignClient.clipboard[3]));
-                text[0] = PictureSignClient.clipboard[0];
-                text[1] = PictureSignClient.clipboard[1];
-                text[2] = PictureSignClient.clipboard[2];
-                text[3] = PictureSignClient.clipboard[3];
+                for (int i = 0; i < 4; i++) {
+                    text[i] = PictureSignClient.clipboard[i];
+                    sign.setTextOnRow(i, Text.of(text[i]));
+                }
                 assert client != null;
                 client.setScreen(this);
             }, Text.of("")));
         if (PictureSignConfig.helperUi)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 62, this.height - 40, 20, 20, 0, 0, 20, TRASHBIN_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
-                sign.setTextOnRow(0, Text.of(""));
-                sign.setTextOnRow(1, Text.of(""));
-                sign.setTextOnRow(2, Text.of(""));
-                sign.setTextOnRow(3, Text.of(""));
-                text[0] = "";
-                text[1] = "";
-                text[2] = "";
-                text[3] = "";
+                for (int i = 0; i < 4; i++) {
+                    text[i] = "";
+                    sign.setTextOnRow(i, Text.empty());
+                }
                 assert client != null;
                 client.setScreen(this);
             }, Text.of("")));
@@ -81,27 +76,34 @@ public class PictureSignHelperScreen extends Screen {
             sign.setEditable(true);
             Objects.requireNonNull(client).setScreen(new SignEditScreen(this.sign,false));
         }, Text.of("")));
+        this.addDrawableChild(new ButtonWidget(this.width / 2,this.height / 5 + 70,40,20, Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")), (buttonWidget) -> {
+            if (text[0].startsWith("!PS")) text[0] = "!VS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
+            else if (text[0].startsWith("!VS")) text[0] = "!LS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
+            else if (text[0].startsWith("!LS")) text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
+            else text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
+            buttonWidget.setMessage(Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")));
+
+            sign.setTextOnRow(0, Text.of(text[0]));
+        }));
         TextFieldWidget linkWidget = new TextFieldWidget(textRenderer,this.width / 2 - 175,this.height / 5 + 13,210,40, Text.of("url"));
-        linkWidget.setMaxLength(90);
+        linkWidget.setMaxLength(900);
         linkWidget.setText(PictureURLUtils.getLink(sign));
         linkWidget.setChangedListener(s -> {
             String[] lines = breakLink(PictureURLUtils.shortenLink(s));
-            sign.setTextOnRow(0, Text.of(lines[0]));
-            sign.setTextOnRow(1, Text.of(lines[1]));
-            sign.setTextOnRow(2, Text.of(lines[2]));
-
-            text = IntStream.range(0, 4).mapToObj((row) ->
-                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+            for (int i = 0; i < 3; i++) {
+                text[i] = lines[i];
+                sign.setTextOnRow(i, Text.of(text[i]));
+            }
         });
         this.addDrawableChild(linkWidget);
-        String[] initialDimensions = sign.getTextOnRow(3, false).getString().split(":");
+        String[] initialDimensions = text[3].split(":");
         TextFieldWidget widthWidget = new TextFieldWidget(textRenderer,this.width / 2 - 175,this.height / 5 + 70,30,20, Text.of("width"));
         widthWidget.setText(initialDimensions[0]);
         widthWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
-                if (sign.getTextOnRow(3, false).getString().split(":").length > i)
-                    dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
+                if (text[3].split(":").length > i)
+                    dimensions[i] = text[3].split(":")[i];
             }
             dimensions[0] = s;
             StringBuilder mergedDimensions = new StringBuilder();
@@ -110,9 +112,8 @@ public class PictureSignHelperScreen extends Screen {
                 mergedDimensions.append(dimensions[i]);
                 if (i < 4)mergedDimensions.append(":");
             }
-            sign.setTextOnRow(3, Text.of(String.valueOf(mergedDimensions)));
-            text = IntStream.range(0, 4).mapToObj((row) ->
-                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+            text[3] = String.valueOf(mergedDimensions);
+            sign.setTextOnRow(3, Text.of(text[3]));
         });
         this.addDrawableChild(widthWidget);
         TextFieldWidget heightWidget = new TextFieldWidget(textRenderer,this.width / 2 - 140,this.height / 5 + 70,30,20, Text.of("height"));
@@ -120,8 +121,8 @@ public class PictureSignHelperScreen extends Screen {
         heightWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
-                if (sign.getTextOnRow(3, false).getString().split(":").length > i)
-                    dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
+                if (text[3].split(":").length > i)
+                    dimensions[i] = text[3].split(":")[i];
             }
             dimensions[1] = s;
             StringBuilder mergedDimensions = new StringBuilder();
@@ -130,9 +131,8 @@ public class PictureSignHelperScreen extends Screen {
                 mergedDimensions.append(dimensions[i]);
                 if (i < 4)mergedDimensions.append(":");
             }
-            sign.setTextOnRow(3, Text.of(String.valueOf(mergedDimensions)));
-            text = IntStream.range(0, 4).mapToObj((row) ->
-                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+            text[3] = String.valueOf(mergedDimensions);
+            sign.setTextOnRow(3, Text.of(text[3]));
         });
         this.addDrawableChild(heightWidget);
         TextFieldWidget posXWidget = new TextFieldWidget(textRenderer,this.width / 2 - 105,this.height / 5 + 70,30,20, Text.of("posX"));
@@ -140,8 +140,8 @@ public class PictureSignHelperScreen extends Screen {
         posXWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
-                if (sign.getTextOnRow(3, false).getString().split(":").length > i)
-                    dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
+                if (text[3].split(":").length > i)
+                    dimensions[i] = text[3].split(":")[i];
             }
             dimensions[2] = s;
             StringBuilder mergedDimensions = new StringBuilder();
@@ -150,9 +150,8 @@ public class PictureSignHelperScreen extends Screen {
                 mergedDimensions.append(dimensions[i]);
                 if (i < 4)mergedDimensions.append(":");
             }
-            sign.setTextOnRow(3, Text.of(String.valueOf(mergedDimensions)));
-            text = IntStream.range(0, 4).mapToObj((row) ->
-                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+            text[3] = String.valueOf(mergedDimensions);
+            sign.setTextOnRow(3, Text.of(text[3]));
         });
         this.addDrawableChild(posXWidget);
         TextFieldWidget posYWidget = new TextFieldWidget(textRenderer,this.width / 2 - 70,this.height / 5 + 70,30,20, Text.of("posY"));
@@ -160,8 +159,8 @@ public class PictureSignHelperScreen extends Screen {
         posYWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
-                if (sign.getTextOnRow(3, false).getString().split(":").length > i)
-                    dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
+                if (text[3].split(":").length > i)
+                    dimensions[i] = text[3].split(":")[i];
             }
             dimensions[3] = s;
             StringBuilder mergedDimensions = new StringBuilder();
@@ -170,9 +169,8 @@ public class PictureSignHelperScreen extends Screen {
                 mergedDimensions.append(dimensions[i]);
                 if (i < 4)mergedDimensions.append(":");
             }
-            sign.setTextOnRow(3, Text.of(String.valueOf(mergedDimensions)));
-            text = IntStream.range(0, 4).mapToObj((row) ->
-                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+            text[3] = String.valueOf(mergedDimensions);
+            sign.setTextOnRow(3, Text.of(text[3]));
         });
         this.addDrawableChild(posYWidget);
         TextFieldWidget posZWidget = new TextFieldWidget(textRenderer,this.width / 2 - 35,this.height / 5 + 70,30,20, Text.of("posZ"));
@@ -180,8 +178,8 @@ public class PictureSignHelperScreen extends Screen {
         posZWidget.setChangedListener(s -> {
             String[] dimensions = new String[5];
             for (int i = 0; i < dimensions.length; ++i){
-                if (sign.getTextOnRow(3, false).getString().split(":").length > i)
-                    dimensions[i] = sign.getTextOnRow(3, false).getString().split(":")[i];
+                if (text[3].split(":").length > i)
+                    dimensions[i] = text[3].split(":")[i];
             }
             dimensions[4] = s;
             StringBuilder mergedDimensions = new StringBuilder();
@@ -190,19 +188,20 @@ public class PictureSignHelperScreen extends Screen {
                 mergedDimensions.append(dimensions[i]);
                 if (i < 4)mergedDimensions.append(":");
             }
-            sign.setTextOnRow(3, Text.of(String.valueOf(mergedDimensions)));
-            text = IntStream.range(0, 4).mapToObj((row) ->
-                    sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
+            text[3] = String.valueOf(mergedDimensions);
+            sign.setTextOnRow(3, Text.of(text[3]));
         });
         this.addDrawableChild(posZWidget);
         this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), SignBlockEntityRenderer.getSignType(sign.getCachedState().getBlock()));
     }
     public void removed() {
         ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
+        for (int i = 0; i < 4; i++) {
+            sign.setTextOnRow(i, Text.of(text[i]));
+        }
         if (clientPlayNetworkHandler != null) {
             clientPlayNetworkHandler.sendPacket(new UpdateSignC2SPacket(this.sign.getPos(), this.text[0], this.text[1], this.text[2], this.text[3]));
         }
-        this.sign.setEditable(true);
     }
     private String[] breakLink(String link) {
         Text linkText = Text.of("!PS:"+link);
@@ -242,7 +241,6 @@ public class PictureSignHelperScreen extends Screen {
         }
     }
     private void finishEditing() {
-        sign.setEditable(true);
         sign.markDirty();
         assert this.client != null;
         this.client.setScreen(null);
@@ -254,8 +252,9 @@ public class PictureSignHelperScreen extends Screen {
         drawTextWithShadow(matrices,textRenderer, Text.of("Width"),this.width / 2 - 175, this.height / 5 + 60, -8816268);
         drawTextWithShadow(matrices,textRenderer, Text.of("Height"),this.width / 2 - 140, this.height / 5 + 60, -8816268);
         drawTextWithShadow(matrices,textRenderer, Text.of("PosX"),this.width / 2 - 105, this.height / 5 + 60, -8816268);
-        drawTextWithShadow(matrices,textRenderer, Text.of("PosY"),this.width / 2 - 75, this.height / 5 + 60, -8816268);
+        drawTextWithShadow(matrices,textRenderer, Text.of("PosY"),this.width / 2 - 70, this.height / 5 + 60, -8816268);
         drawTextWithShadow(matrices,textRenderer, Text.of("PosZ"),this.width / 2 - 35, this.height / 5 + 60, -8816268);
+        drawTextWithShadow(matrices,textRenderer, Text.of("Mode"),this.width / 2, this.height / 5 + 60, -8816268);
         drawCenteredText(matrices, this.textRenderer, this.title, this.width / 2, 40, 16777215);
         matrices.push();
         matrices.translate(this.width / 2f + 100, this.height / 5f - 60, 50.0);

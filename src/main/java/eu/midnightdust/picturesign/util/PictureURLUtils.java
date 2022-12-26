@@ -7,7 +7,7 @@ public class PictureURLUtils {
         String text = signBlockEntity.getTextOnRow(0, false).getString() +
                 signBlockEntity.getTextOnRow(1, false).getString() +
                 signBlockEntity.getTextOnRow(2, false).getString();
-        String url = text.replaceAll("!PS:", "").replaceAll(" ","");
+        String url = text.replaceAll("!PS:", "").replaceAll("!VS:", "").replaceAll("!LS:", "").replaceAll(" ","");
         if (url.startsWith("ps:")) url = url.replace("ps:", "https://pictshare.net/");
         if (url.startsWith("imgur:")) url = url.replace("imgur:", "https://i.imgur.com/");
         if (url.startsWith("imgbb:")) url = url.replace("imgbb:", "https://i.ibb.co/");
