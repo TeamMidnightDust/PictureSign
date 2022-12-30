@@ -1,8 +1,13 @@
 package eu.midnightdust.picturesign.render;
 
+import com.igrium.videolib.VideoLib;
+import com.igrium.videolib.api.VideoManager;
+import com.igrium.videolib.api.VideoPlayer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.picturesign.PictureDownloader;
+import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.irisshaders.iris.api.v0.IrisApi;
@@ -11,32 +16,43 @@ import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
+import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class PictureSignRenderer {
+    VideoManager videoManager = VideoLib.getInstance().getVideoManager();
+    public static List<Identifier> videoPlayers = new ArrayList<>();
+    List<BlockPos> playedOnce = new ArrayList<>();
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay) {
         String url = PictureURLUtils.getLink(signBlockEntity);
         if (!url.startsWith("https://") && !url.startsWith("http://") && !url.startsWith("file:") && !url.startsWith("rp:")) {
             url = "https://" + url;
         }
-        if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
-        if (PictureSignConfig.safeMode && !url.startsWith("https://i.imgur.com/") && !url.startsWith("https://i.ibb.co/")
-                && !url.startsWith("https://pictshare.net/") && !url.startsWith("https://iili.io/"))
-            return;
+        //if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
+        //if (PictureSignConfig.safeMode && !url.startsWith("https://i.imgur.com/") && !url.startsWith("https://i.ibb.co/")
+        //        && !url.startsWith("https://pictshare.net/") && !url.startsWith("https://iili.io/"))
+        //    return;
         World world = signBlockEntity.getWorld();
         BlockPos pos = signBlockEntity.getPos();
-        if (world != null && (world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
-                && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)) return;
-        if (world != null && (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
-                && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)) return;
-
+        if (world != null && ((world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
+                && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)
+        || (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
+                        && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)))
+        {
+            if (videoManager != null)
+                videoManager.closePlayer(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
+            playedOnce.remove(pos);
+            return;
+        }
 
         String lastLine = signBlockEntity.getTextOnRow(3, false).getString();
 
@@ -58,10 +74,34 @@ public class PictureSignRenderer {
         catch (NumberFormatException ignored) {}
 
         // Download the picture data
-        PictureDownloader.PictureData data = PictureDownloader.getInstance().getPicture(url);
-        if (data == null || data.identifier == null) {
-            return;
+        PictureDownloader.PictureData data = null;
+        VideoPlayer videoPlayer = null;
+        if (PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE)) {
+            data = PictureDownloader.getInstance().getPicture(url);
+            if (data == null || data.identifier == null) {
+                return;
+            }
         }
+        else if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO) || PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
+            videoPlayer = videoManager.getOrCreate(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
+            videoPlayers.add(videoPlayer.getId());
+            try {
+                if (PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
+                    if (!videoPlayer.getMediaInterface().hasMedia()) {
+                        videoPlayer.getMediaInterface().play(url);
+                        videoPlayer.getControlsInterface().setRepeat(true);
+                    }
+                }
+                else if (!videoPlayer.getMediaInterface().hasMedia() && !playedOnce.contains(pos))
+                    videoPlayer.getMediaInterface().play(url);
+
+            } catch (MalformedURLException e) {
+                PictureSignClient.LOGGER.error(e);
+                return;
+            }
+        }
+        else return;
+        if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO)) playedOnce.add(pos);
 
         float xOffset = 0.0F;
         float zOffset = 0.0F;
@@ -107,7 +147,21 @@ public class PictureSignRenderer {
             RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapProgram);
             l = light;
         }
-        RenderSystem.setShaderTexture(0, data.identifier);
+        Identifier texture;
+        if (PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE)) {
+            assert data != null;
+            texture = data.identifier;
+        }
+        else if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO) || PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
+            assert videoPlayer != null;
+            //TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+            //if (videoPlayer.getTexture() != null && videoPlayer.getCodecInterface().getFrameRate() > 1 && textureManager.getTexture(videoPlayer.getTexture()) != null && textureManager.getTexture(videoPlayer.getTexture()).getGlId() != 0)
+                texture = videoPlayer.getTexture();
+            //else texture = new Identifier("picturesign", "textures/black.png");
+        }
+        else return;
+        RenderSystem.setShaderTexture(0, new Identifier("picturesign", "textures/black.png"));
+        RenderSystem.setShaderTexture(0, texture);
 
         if (PictureSignConfig.translucency) RenderSystem.enableBlend();
         else RenderSystem.disableBlend();

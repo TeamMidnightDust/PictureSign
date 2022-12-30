@@ -4,6 +4,7 @@ import eu.midnightdust.lib.config.MidnightConfig;
 
 public class PictureSignConfig extends MidnightConfig {
     @Entry public static boolean enabled = true;
+    @Entry public static boolean enableVideoSigns = true;
     @Entry public static boolean translucency = false;
     @Entry public static boolean helperUi = true;
     @Entry public static boolean exceedVanillaLineLength = false;
