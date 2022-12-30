@@ -19,6 +19,8 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class PictureSignRenderer {
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay) {
         String url = PictureURLUtils.getLink(signBlockEntity);
-        if (!url.startsWith("https://") && !url.startsWith("http://")) {
+        if (!url.startsWith("https://") && !url.startsWith("http://") && !url.startsWith("file:") && !url.startsWith("rp:")) {
             url = "https://" + url;
         }
         //if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
@@ -104,7 +106,7 @@ public class PictureSignRenderer {
         float xOffset = 0.0F;
         float zOffset = 0.0F;
 
-        Quaternion yRotation = Vec3f.POSITIVE_Y.getDegreesQuaternion(0F);
+        Quaternionf yRotation = RotationAxis.POSITIVE_Y.rotationDegrees(0F);
 
         if (signBlockEntity.getCachedState().contains(Properties.HORIZONTAL_FACING)) {
             Direction direction = signBlockEntity.getCachedState().get(Properties.HORIZONTAL_FACING);
@@ -112,21 +114,21 @@ public class PictureSignRenderer {
                 case NORTH -> {
                     zOffset = 1.01F;
                     xOffset = 1.0F;
-                    yRotation = Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F);
+                    yRotation = RotationAxis.POSITIVE_Y.rotationDegrees(180.0F);
                 }
                 case SOUTH -> zOffset = 0.010F;
                 case EAST -> {
                     zOffset = 1.01F;
-                    yRotation = Vec3f.POSITIVE_Y.getDegreesQuaternion(90.0F);
+                    yRotation = RotationAxis.POSITIVE_Y.rotationDegrees(90.0F);
                 }
                 case WEST -> {
-                    yRotation = Vec3f.POSITIVE_Y.getDegreesQuaternion(-90.0F);
+                    yRotation = RotationAxis.POSITIVE_Y.rotationDegrees(-90.0F);
                     xOffset = 1.01F;
                 }
             }
         }
         else if (signBlockEntity.getCachedState().contains(Properties.ROTATION)) {
-            yRotation = Vec3f.POSITIVE_Y.getDegreesQuaternion(signBlockEntity.getCachedState().get(Properties.ROTATION) * -22.5f);
+            yRotation = RotationAxis.POSITIVE_Y.rotationDegrees(signBlockEntity.getCachedState().get(Properties.ROTATION) * -22.5f);
         }
         else return;
 
@@ -138,11 +140,11 @@ public class PictureSignRenderer {
 
         int l;
         if (FabricLoader.getInstance().isModLoaded("iris") && IrisApi.getInstance().isShaderPackInUse()) {
-            RenderSystem.setShader(GameRenderer::getRenderTypeCutoutShader);
+            RenderSystem.setShader(GameRenderer::getRenderTypeCutoutProgram);
             l = 15728880;
         }
         else {
-            RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
+            RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapProgram);
             l = light;
         }
         Identifier texture;

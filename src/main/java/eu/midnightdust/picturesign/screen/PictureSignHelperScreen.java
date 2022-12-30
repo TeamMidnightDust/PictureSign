@@ -1,11 +1,11 @@
 package eu.midnightdust.picturesign.screen;
 
-import eu.midnightdust.lib.util.MidnightColorUtil;
 import eu.midnightdust.lib.util.screen.TexturedOverlayButtonWidget;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
+import net.minecraft.block.AbstractSignBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SignBlock;
 import net.minecraft.block.entity.SignBlockEntity;
@@ -22,7 +22,7 @@ import net.minecraft.network.packet.c2s.play.UpdateSignC2SPacket;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
+import org.joml.Matrix4f;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -51,9 +51,7 @@ public class PictureSignHelperScreen extends Screen {
         for (int i = 0; i < 3; i++) {
             sign.setTextOnRow(i, Text.of(text[i]));
         }
-        this.addDrawableChild(new ButtonWidget(this.width / 2 - 100, this.height / 4 + 120, 200, 20, ScreenTexts.DONE, (button) -> {
-            this.finishEditing();
-        }));
+        this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> this.finishEditing()).dimensions(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build());
 
         if (PictureSignClient.clipboard != null && PictureSignClient.clipboard[0] != null)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 84, this.height - 40, 20, 20, 0, 0, 20, CLIPBOARD_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
@@ -77,15 +75,15 @@ public class PictureSignHelperScreen extends Screen {
             sign.setEditable(true);
             Objects.requireNonNull(client).setScreen(new SignEditScreen(this.sign,false));
         }, Text.of("")));
-        this.addDrawableChild(new ButtonWidget(this.width / 2,this.height / 5 + 70,40,20, Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")), (buttonWidget) -> {
+        this.addDrawableChild(ButtonWidget.builder(Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")), button -> {
             if (text[0].startsWith("!PS:")) text[0] = "!VS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
             else if (text[0].startsWith("!VS:")) text[0] = "!LS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
             else if (text[0].startsWith("!LS:")) text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
             else text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
-            buttonWidget.setMessage(Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")));
-
+            button.setMessage(Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")));
             sign.setTextOnRow(0, Text.of(text[0]));
-        }));
+        }).dimensions(this.width / 2,this.height / 5 + 70,40,20).build());
+
         TextFieldWidget linkWidget = new TextFieldWidget(textRenderer,this.width / 2 - 175,this.height / 5 + 13,215,40, Text.of("url"));
         linkWidget.setMaxLength(900);
         linkWidget.setText(PictureURLUtils.getLink(sign));
@@ -197,7 +195,7 @@ public class PictureSignHelperScreen extends Screen {
             sign.setTextOnRow(3, Text.of(text[3]));
         });
         this.addDrawableChild(posZWidget);
-        this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), SignBlockEntityRenderer.getSignType(sign.getCachedState().getBlock()));
+        this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), AbstractSignBlock.getSignType(sign.getCachedState().getBlock()));
     }
     public void removed() {
         ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
@@ -273,7 +271,7 @@ public class PictureSignHelperScreen extends Screen {
         matrices.push();
         matrices.scale(0.6666667F, -0.6666667F, -0.6666667F);
         VertexConsumerProvider.Immediate immediate = this.client.getBufferBuilders().getEntityVertexConsumers();
-        SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getSignTextureId(SignBlockEntityRenderer.getSignType(sign.getCachedState().getBlock()));
+        SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getSignTextureId(AbstractSignBlock.getSignType(sign.getCachedState().getBlock()));
         SignBlockEntityRenderer.SignModel var10002 = this.model;
         Objects.requireNonNull(var10002);
         VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(immediate, var10002::getLayer);
