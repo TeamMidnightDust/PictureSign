@@ -7,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.picturesign.PictureDownloader;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.PictureInfo;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.fabricmc.loader.api.FabricLoader;
@@ -32,7 +33,16 @@ public class PictureSignRenderer {
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay) {
         String url = PictureURLUtils.getLink(signBlockEntity);
-        if (!url.startsWith("https://") && !url.startsWith("http://")) {
+        PictureInfo info = null;
+        if (!url.contains("://")) {
+            url = "https://" + url;
+        }
+        if (url.endsWith(".json")) {
+            info = PictureURLUtils.infoFromJson(url);
+            if (info == null) return;
+            url = info.url();
+        }
+        if (!url.contains("://")) {
             url = "https://" + url;
         }
         //if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
@@ -49,6 +59,8 @@ public class PictureSignRenderer {
             if (videoManager != null)
                 videoManager.closePlayer(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
             playedOnce.remove(pos);
+            videoPlayers.remove(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
+            PictureURLUtils.cachedJsonData.remove(url);
             return;
         }
 
@@ -90,13 +102,16 @@ public class PictureSignRenderer {
                         videoPlayer.getControlsInterface().setRepeat(true);
                     }
                 }
-                else if (!videoPlayer.getMediaInterface().hasMedia() && !playedOnce.contains(pos))
+                else if (!videoPlayer.getMediaInterface().hasMedia() && !playedOnce.contains(pos)) {
                     videoPlayer.getMediaInterface().play(url);
+                }
 
             } catch (MalformedURLException e) {
                 PictureSignClient.LOGGER.error(e);
                 return;
             }
+            if (info != null && info.start() > 0 && videoPlayer.getControlsInterface().getTime() < info.start()) videoPlayer.getControlsInterface().setTime(info.start());
+            if (info != null && info.end() > 0 && videoPlayer.getControlsInterface().getTime() >= info.end() && !playedOnce.contains(pos))  videoPlayer.getControlsInterface().stop();
         }
         else return;
         if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO)) playedOnce.add(pos);
