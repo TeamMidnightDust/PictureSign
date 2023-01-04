@@ -13,6 +13,11 @@
 	"picturesign.midnightconfig.safeMode.tooltip":"Lädt nur Bilder von vertrauten Seiten",
 	"picturesign.midnightconfig.ebeWarning":"§cWenn du die Mod 'Enhanced Block Entities' benutzt, stelle sicher,",
 	"picturesign.midnightconfig.ebeWarning2":"§cdass du alles in Relation zu Schildern in der EBE Config deaktiviert hast!",
+	"picturesign.midnightconfig.safeProviders":"Sichere Anbieter",
+	"picturesign.midnightconfig.missingImageMode":"Darstellung fehlender Texturen",
+	"picturesign.midnightconfig.enum.MissingImageMode.BLACK":"Schwarz",
+	"picturesign.midnightconfig.enum.MissingImageMode.MISSING_TEXTURE":"Schwarz & Lila",
+	"picturesign.midnightconfig.enum.MissingImageMode.TRANSPARENT":"Transparent",
 	"key.picturesign.copy_sign": "Text eines Schildes kopieren",
 	"key.picturesign.edit_sign":"Schild bearbeiten"
 }

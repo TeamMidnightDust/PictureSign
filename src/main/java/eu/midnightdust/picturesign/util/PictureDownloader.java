@@ -1,5 +1,6 @@
-package eu.midnightdust.picturesign;
+package eu.midnightdust.picturesign.util;
 
+import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
@@ -13,6 +14,7 @@ import java.net.URL;
 import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
 
+import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class PictureDownloader {
@@ -65,7 +67,7 @@ public class PictureDownloader {
         service.submit(() -> {
             try {
                 BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-                File file = File.createTempFile(".picturesign", "temp");
+                File file = File.createTempFile("."+MOD_ID, "temp");
                 file.deleteOnExit();
 
                 BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
@@ -89,7 +91,7 @@ public class PictureDownloader {
                 NativeImage nativeImage = NativeImage.read(inputStream);
                 NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(nativeImage);
 
-                Identifier texture = MinecraftClient.getInstance().getTextureManager().registerDynamicTexture("picturesign/image",
+                Identifier texture = MinecraftClient.getInstance().getTextureManager().registerDynamicTexture(MOD_ID+"/image",
                         nativeImageBackedTexture);
 
                 // Cache the downloaded picture

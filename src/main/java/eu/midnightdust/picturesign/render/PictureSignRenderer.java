@@ -1,20 +1,18 @@
 package eu.midnightdust.picturesign.render;
 
-import com.igrium.videolib.VideoLib;
-import com.igrium.videolib.api.VideoManager;
-import com.igrium.videolib.api.VideoPlayer;
 import com.mojang.blaze3d.systems.RenderSystem;
-import eu.midnightdust.picturesign.PictureDownloader;
+import eu.midnightdust.lib.util.PlatformFunctions;
+import eu.midnightdust.picturesign.util.*;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
-import eu.midnightdust.picturesign.util.PictureInfo;
-import eu.midnightdust.picturesign.util.PictureSignType;
-import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.SignBlockEntity;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
+import net.minecraft.client.texture.NativeImageBackedTexture;
+import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
@@ -22,14 +20,11 @@ import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
 
 public class PictureSignRenderer {
-    VideoManager videoManager = VideoLib.getInstance().getVideoManager();
-    public static List<Identifier> videoPlayers = new ArrayList<>();
-    List<BlockPos> playedOnce = new ArrayList<>();
+    private boolean isSafeUrl;
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay) {
         String url = PictureURLUtils.getLink(signBlockEntity);
@@ -45,21 +40,25 @@ public class PictureSignRenderer {
         if (!url.contains("://")) {
             url = "https://" + url;
         }
-        //if (!url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
-        //if (PictureSignConfig.safeMode && !url.startsWith("https://i.imgur.com/") && !url.startsWith("https://i.ibb.co/")
-        //        && !url.startsWith("https://pictshare.net/") && !url.startsWith("https://iili.io/"))
-        //    return;
+        if (PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE) && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
+        if (PictureSignConfig.safeMode) {
+            isSafeUrl = false;
+            String finalUrl = url;
+            PictureSignConfig.safeProviders.forEach(safe -> {
+                if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
+            });
+            if (!isSafeUrl) return;
+        }
+        if ((!PictureSignConfig.enableVideoSigns || !PlatformFunctions.isModLoaded("videolib")) && !PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE)) return;
         World world = signBlockEntity.getWorld();
         BlockPos pos = signBlockEntity.getPos();
+        Identifier videoId = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ());
         if (world != null && ((world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
                 && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)
         || (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
                         && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)))
         {
-            if (videoManager != null)
-                videoManager.closePlayer(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
-            playedOnce.remove(pos);
-            videoPlayers.remove(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
+            VideoHandler.closePlayer(videoId);
             PictureURLUtils.cachedJsonData.remove(url);
             return;
         }
@@ -68,53 +67,48 @@ public class PictureSignRenderer {
 
         if (!lastLine.matches("(.*\\d:.*\\d:.*\\d:.*\\d:.*\\d)")) return;
 
-        List<String> scale = Arrays.stream(lastLine.split(":")).toList();
+        String[] scale = lastLine.split(":");
         float width = 0;
         float height = 0;
         float x = 0;
         float y = 0;
         float z = 0;
         try {
-            width = Float.parseFloat(scale.get(0));
-            height = Float.parseFloat(scale.get(1));
-            x = Float.parseFloat(scale.get(2));
-            y = Float.parseFloat(scale.get(3));
-            z = Float.parseFloat(scale.get(4));
+            width = Float.parseFloat(scale[0]);
+            height = Float.parseFloat(scale[1]);
+            x = Float.parseFloat(scale[2]);
+            y = Float.parseFloat(scale[3]);
+            z = Float.parseFloat(scale[4]);
         }
         catch (NumberFormatException ignored) {}
 
         // Download the picture data
         PictureDownloader.PictureData data = null;
-        VideoPlayer videoPlayer = null;
         if (PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE)) {
             data = PictureDownloader.getInstance().getPicture(url);
-            if (data == null || data.identifier == null) {
-                return;
-            }
+            if (data == null || data.identifier == null) return;
         }
         else if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO) || PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
-            videoPlayer = videoManager.getOrCreate(new Identifier("picturesign", pos.getX() + "." + pos.getY() + "." + pos.getZ()));
-            videoPlayers.add(videoPlayer.getId());
+            VideoHandler.videoPlayers.add(videoId);
             try {
-                if (PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
-                    if (!videoPlayer.getMediaInterface().hasMedia()) {
-                        videoPlayer.getMediaInterface().play(url);
-                        videoPlayer.getControlsInterface().setRepeat(true);
-                    }
+                if (PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO) && !VideoHandler.hasMedia(videoId)) {
+                    VideoHandler.play(videoId, url);
+                    VideoHandler.setRepeat(videoId, true);
                 }
-                else if (!videoPlayer.getMediaInterface().hasMedia() && !playedOnce.contains(pos)) {
-                    videoPlayer.getMediaInterface().play(url);
+                else if (!VideoHandler.hasMedia(videoId) && !VideoHandler.playedOnce.contains(videoId)) {
+                    VideoHandler.play(videoId, url);
                 }
 
             } catch (MalformedURLException e) {
                 PictureSignClient.LOGGER.error(e);
                 return;
             }
-            if (info != null && info.start() > 0 && videoPlayer.getControlsInterface().getTime() < info.start()) videoPlayer.getControlsInterface().setTime(info.start());
-            if (info != null && info.end() > 0 && videoPlayer.getControlsInterface().getTime() >= info.end() && !playedOnce.contains(pos))  videoPlayer.getControlsInterface().stop();
+            if (info != null && info.start() > 0 && VideoHandler.getTime(videoId) < info.start()) VideoHandler.setTime(videoId, info.start());
+            if (info != null && info.end() > 0 && VideoHandler.getTime(videoId) >= info.end() && !VideoHandler.playedOnce.contains(videoId)) VideoHandler.stop(videoId);
         }
         else return;
-        if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO)) playedOnce.add(pos);
+
+        if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO)) VideoHandler.playedOnce.add(videoId);
 
         float xOffset = 0.0F;
         float zOffset = 0.0F;
@@ -145,11 +139,8 @@ public class PictureSignRenderer {
         }
         else return;
 
-
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
-
-
 
         int l;
         if (FabricLoader.getInstance().isModLoaded("iris") && IrisApi.getInstance().isShaderPackInUse()) {
@@ -165,15 +156,14 @@ public class PictureSignRenderer {
             assert data != null;
             texture = data.identifier;
         }
-        else if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO) || PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO)) {
-            assert videoPlayer != null;
-            //TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-            //if (videoPlayer.getTexture() != null && videoPlayer.getCodecInterface().getFrameRate() > 1 && textureManager.getTexture(videoPlayer.getTexture()) != null && textureManager.getTexture(videoPlayer.getTexture()).getGlId() != 0)
-                texture = videoPlayer.getTexture();
-            //else texture = new Identifier("picturesign", "textures/black.png");
-        }
+        else if (PictureSignType.isType(signBlockEntity, PictureSignType.VIDEO) || PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO))
+            texture = VideoHandler.getTexture(videoId);
         else return;
-        RenderSystem.setShaderTexture(0, new Identifier("picturesign", "textures/black.png"));
+        TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+        if (textureManager.getTexture(texture) == null || (textureManager.getTexture(texture) instanceof NativeImageBackedTexture nativeTexture && nativeTexture.getImage() == null)) {
+            if (PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.TRANSPARENT)) return;
+            texture = PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.BLACK) ? (new Identifier(MOD_ID, "textures/black.png")) : (TextureManager.MISSING_IDENTIFIER);
+        }
         RenderSystem.setShaderTexture(0, texture);
 
         if (PictureSignConfig.translucency) RenderSystem.enableBlend();
@@ -182,7 +172,7 @@ public class PictureSignRenderer {
         RenderSystem.depthMask(true);
 
         matrixStack.push();
-        matrixStack.translate(xOffset + x, 0.00F + y, zOffset + z);
+        matrixStack.translate(xOffset + x, y, zOffset + z);
         matrixStack.multiply(yRotation);
 
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();

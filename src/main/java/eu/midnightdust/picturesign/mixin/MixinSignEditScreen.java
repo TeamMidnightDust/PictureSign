@@ -18,11 +18,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
 
+import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
+
 @Mixin(SignEditScreen.class)
 public abstract class MixinSignEditScreen extends Screen {
-    private static final Identifier PICTURESIGN_ICON_TEXTURE = new Identifier("picturesign","textures/gui/picturesign_button.png");
-    private static final Identifier CLIPBOARD_ICON_TEXTURE = new Identifier("picturesign","textures/gui/clipboard_button.png");
-    private static final Identifier TRASHBIN_ICON_TEXTURE = new Identifier("picturesign","textures/gui/trashbin_button.png");
+    private static final Identifier PICTURESIGN_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/picturesign_button.png");
+    private static final Identifier CLIPBOARD_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/clipboard_button.png");
+    private static final Identifier TRASHBIN_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/trashbin_button.png");
     @Shadow @Final private SignBlockEntity sign;
 
     @Shadow @Final private String[] text;
@@ -39,18 +41,18 @@ public abstract class MixinSignEditScreen extends Screen {
                     text[i] = PictureSignClient.clipboard[i];
                     sign.setTextOnRow(i, Text.of(text[i]));
                 }
-            }, Text.of("")));
+            }, Text.empty()));
         if (PictureSignConfig.helperUi)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 62, this.height - 40, 20, 20, 0, 0, 20, TRASHBIN_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
                 for (int i = 0; i < 4; i++) {
                     text[i] = "";
                     sign.setTextOnRow(i, Text.empty());
                 }
-            }, Text.of("")));
+            }, Text.empty()));
         if (PictureSignConfig.helperUi)
             this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 40, this.height - 40, 20, 20, 0, 0, 20, PICTURESIGN_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
                 sign.setEditable(true);
                 Objects.requireNonNull(client).setScreen(new PictureSignHelperScreen(this.sign,false));
-            }, Text.of("")));
+            }, Text.empty()));
     }
 }

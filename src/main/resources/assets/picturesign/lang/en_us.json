@@ -14,6 +14,11 @@
 	"picturesign.midnightconfig.safeMode.tooltip":"Only load images from trusted providers",
 	"picturesign.midnightconfig.ebeWarning":"§cIf you are using the mod 'Enhanced Block Entities'",
 	"picturesign.midnightconfig.ebeWarning2":"§cmake sure to disable anything sign-related in it's config!",
+	"picturesign.midnightconfig.safeProviders":"Safe providers",
+	"picturesign.midnightconfig.missingImageMode":"Missing image mode",
+	"picturesign.midnightconfig.enum.MissingImageMode.BLACK":"Black",
+	"picturesign.midnightconfig.enum.MissingImageMode.MISSING_TEXTURE":"Black & Purple",
+	"picturesign.midnightconfig.enum.MissingImageMode.TRANSPARENT":"Transparent",
 	"key.picturesign.copy_sign":"Copy Text from Sign",
 	"key.picturesign.edit_sign":"Edit Sign",
 	"key.categories.picturesign":"PictureSign"

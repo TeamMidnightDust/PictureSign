@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("UnstableApiUsage")
 public class PictureURLUtils {
     public static final Type STRING_TYPE = new TypeToken<Map<String, String>>(){}.getType();
     public static final Map<String, PictureInfo> cachedJsonData = new HashMap<>();
@@ -37,7 +38,8 @@ public class PictureURLUtils {
         }
         if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("JsonData: "+jsonData);
         if (jsonData != null && !jsonData.isEmpty() && jsonData.containsKey("url")) {
-            result = new PictureInfo(jsonData.get("url"), getDurationMillis(jsonData.getOrDefault("start_at", "")), getDurationMillis(jsonData.getOrDefault("end_at", "")), Integer.parseInt(jsonData.getOrDefault("volume", "-1")));
+            result = new PictureInfo(jsonData.get("url"), getDurationMillis(jsonData.getOrDefault("start_at", "")),
+                    getDurationMillis(jsonData.getOrDefault("end_at", "")), Integer.parseInt(jsonData.getOrDefault("volume", "-1")));
             PictureSignClient.LOGGER.info("URL successfully loaded from JSON!");
         } else {
             PictureSignClient.LOGGER.warn("Unable to load url from JSON");

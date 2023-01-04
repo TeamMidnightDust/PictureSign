@@ -1,10 +1,8 @@
 package eu.midnightdust.picturesign.screen;
 
-import eu.midnightdust.lib.util.MidnightColorUtil;
 import eu.midnightdust.lib.util.screen.TexturedOverlayButtonWidget;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
-import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SignBlock;
@@ -27,10 +25,12 @@ import net.minecraft.util.math.Matrix4f;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
+import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
+
 public class PictureSignHelperScreen extends Screen {
-    private static final Identifier TEXTSIGN_ICON_TEXTURE = new Identifier("picturesign","textures/gui/textsign_button.png");
-    private static final Identifier CLIPBOARD_ICON_TEXTURE = new Identifier("picturesign","textures/gui/clipboard_button.png");
-    private static final Identifier TRASHBIN_ICON_TEXTURE = new Identifier("picturesign","textures/gui/trashbin_button.png");
+    private static final Identifier TEXTSIGN_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/textsign_button.png");
+    private static final Identifier CLIPBOARD_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/clipboard_button.png");
+    private static final Identifier TRASHBIN_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/trashbin_button.png");
     private final SignBlockEntity sign;
     private SignBlockEntityRenderer.SignModel model;
     private String[] text;
@@ -43,6 +43,7 @@ public class PictureSignHelperScreen extends Screen {
     }
     protected void init() {
         super.init();
+        if (this.client == null) return;
         sign.setEditable(false);
         text = IntStream.range(0, 4).mapToObj((row) ->
                 sign.getTextOnRow(row, false)).map(Text::getString).toArray(String[]::new);
@@ -200,6 +201,7 @@ public class PictureSignHelperScreen extends Screen {
         this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), SignBlockEntityRenderer.getSignType(sign.getCachedState().getBlock()));
     }
     public void removed() {
+        if (this.client == null) return;
         ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
         for (int i = 0; i < 4; i++) {
             sign.setTextOnRow(i, Text.of(text[i]));
@@ -251,6 +253,7 @@ public class PictureSignHelperScreen extends Screen {
         this.client.setScreen(null);
     }
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        if (this.client == null) return;
         DiffuseLighting.disableGuiDepthLighting();
         this.renderBackground(matrices);
         drawTextWithShadow(matrices,textRenderer, Text.of("Link" + (PictureSignConfig.safeMode ? " (imgur.com/imgbb.com/iili.io/pictshare.net)" : "")),this.width / 2 - 175, this.height / 5 + 3, -8816268);
