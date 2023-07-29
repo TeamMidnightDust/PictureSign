@@ -38,20 +38,22 @@ public class PictureSignClient implements ClientModInitializer {
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
             if (PlatformFunctions.isModLoaded("videolib")) {
                 BlockPos pos = blockEntity.getPos();
-                Identifier videoId = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ());
+                Identifier videoId = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ()+"_f");
                 VideoHandler.closePlayer(videoId);
+                Identifier videoId2 = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ()+"_b");
+                VideoHandler.closePlayer(videoId2);
             }
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!PictureSignClient.BINDING_COPY_SIGN.isPressed()) return;
             PictureSignClient.BINDING_COPY_SIGN.setPressed(false);
             if (client.player == null || client.world == null || client.crosshairTarget == null || client.crosshairTarget.getType() != HitResult.Type.BLOCK) return;
-            if (client.crosshairTarget.getType() == HitResult.Type.BLOCK && client.world.getBlockState(new BlockPos(client.crosshairTarget.getPos())).hasBlockEntity()) {
-                if (client.world.getBlockEntity(new BlockPos(client.crosshairTarget.getPos())) instanceof SignBlockEntity sign) {
-                    clipboard[0] = sign.getTextOnRow(0, false).getString();
-                    clipboard[1] = sign.getTextOnRow(1, false).getString();
-                    clipboard[2] = sign.getTextOnRow(2, false).getString();
-                    clipboard[3] = sign.getTextOnRow(3, false).getString();
+            if (client.crosshairTarget.getType() == HitResult.Type.BLOCK && client.world.getBlockState(BlockPos.ofFloored(client.crosshairTarget.getPos())).hasBlockEntity()) {
+                if (client.world.getBlockEntity(BlockPos.ofFloored(client.crosshairTarget.getPos())) instanceof SignBlockEntity sign) {
+                    boolean front = sign.isPlayerFacingFront(client.player);
+                    for (int i = 0; i < 4; i++) {
+                        clipboard[i] = sign.getText(front).getMessage(i, false).getString();
+                    }
                 }
             }
         });

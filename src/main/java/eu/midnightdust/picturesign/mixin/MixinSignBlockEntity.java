@@ -21,8 +21,10 @@ public abstract class MixinSignBlockEntity extends BlockEntity {
     @Override
     @Unique
     public void markRemoved() {
-        Identifier videoId = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ());
+        Identifier videoId = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ() + "_f");
+        Identifier videoId2 = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ() + "_b");
         VideoHandler.closePlayer(videoId);
+        VideoHandler.closePlayer(videoId2);
         super.markRemoved();
     }
 }

@@ -38,4 +38,7 @@ public class VideoHandler {
     public static Identifier getTexture(Identifier id) {
         return videoManager.getOrCreate(id).getTexture();
     }
+    public static float getFramerate(Identifier id) {
+        return videoManager.getOrCreate(id).getCodecInterface().getFrameRate();
+    }
 }

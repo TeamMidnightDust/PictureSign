@@ -11,13 +11,22 @@
 	"picturesign.midnightconfig.signRenderDistance":"Schildsichtweite",
 	"picturesign.midnightconfig.safeMode":"Sicherer Modus",
 	"picturesign.midnightconfig.safeMode.tooltip":"Lädt nur Bilder von vertrauten Seiten",
-	"picturesign.midnightconfig.ebeWarning":"§cWenn du die Mod 'Enhanced Block Entities' benutzt, stelle sicher,",
-	"picturesign.midnightconfig.ebeWarning2":"§cdass du alles in Relation zu Schildern in der EBE Config deaktiviert hast!",
+	"picturesign.midnightconfig.ebeWarning":"§cWenn du die Mod 'Enhanced Block Entities' benutzt, stelle sicher, dass du alles in Relation zu Schildern in der EBE Config deaktiviert hast!",
 	"picturesign.midnightconfig.safeProviders":"Sichere Anbieter",
 	"picturesign.midnightconfig.missingImageMode":"Darstellung fehlender Texturen",
 	"picturesign.midnightconfig.enum.MissingImageMode.BLACK":"Schwarz",
 	"picturesign.midnightconfig.enum.MissingImageMode.MISSING_TEXTURE":"Schwarz & Lila",
 	"picturesign.midnightconfig.enum.MissingImageMode.TRANSPARENT":"Transparent",
 	"key.picturesign.copy_sign": "Text eines Schildes kopieren",
-	"key.picturesign.edit_sign":"Schild bearbeiten"
+	"key.picturesign.edit_sign":"Schild bearbeiten",
+
+	"picturesign.midnightconfig.category.1general": "Generell",
+	"picturesign.midnightconfig.category.advanced": "Fortgeschritten",
+	"picturesign.midnightconfig.enableVideoSigns": "Aktiviere Videos",
+	"picturesign.midnightconfig.fullBrightPicture": "Höchste Helligkeit",
+	"picturesign.midnightconfig.fullBrightPicture.tooltip": "Sorgt dafür, dass Bilder immer vollkommen beleuchtet dargestellt werden",
+	"picturesign.midnightconfig.invidiousInstance": "Invidious-Instanz",
+	"picturesign.midnightconfig.invidiousInstance.tooltip": "Wähle die Invidious-Instanz aus, die zur Wiedergabe von YouTube-Videos verwendet wird. \nEine Liste dieser ist zu finden unter\ndocs.invidious.io/instances/",
+	"picturesign.midnightconfig.pictureShader": "Render-Programm",
+	"picturesign.midnightconfig.pictureShader.tooltip": "Wähle das Shader-Programm, mit dem die Bilder dargestellt werden, was nützlich ist, wenn diese mit Shaderpacks nicht richtig dargestellt werden"
 }

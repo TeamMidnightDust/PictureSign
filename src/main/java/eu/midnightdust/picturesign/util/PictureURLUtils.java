@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("UnstableApiUsage")
 public class PictureURLUtils {
     public static final Type STRING_TYPE = new TypeToken<Map<String, String>>(){}.getType();
     public static final Map<String, PictureInfo> cachedJsonData = new HashMap<>();
@@ -60,15 +59,16 @@ public class PictureURLUtils {
         catch (MalformedURLException e) {PictureSignClient.LOGGER.warn("Malformed URL: " + e);}
         return result;
     }
-    public static String getLink(SignBlockEntity signBlockEntity) {
-        String text = signBlockEntity.getTextOnRow(0, false).getString() +
-                signBlockEntity.getTextOnRow(1, false).getString() +
-                signBlockEntity.getTextOnRow(2, false).getString();
+    public static String getLink(SignBlockEntity signBlockEntity, boolean front) {
+        String text = signBlockEntity.getText(front).getMessage(0, false).getString() +
+                signBlockEntity.getText(front).getMessage(1, false).getString();
+        if (!signBlockEntity.getText(front).getMessage(2, false).getString().matches("(.*\\d:.*\\d:.*\\d)")) text += signBlockEntity.getText(front).getMessage(2, false).getString();
         String url = text.replaceAll("!PS:", "").replaceAll("!VS:", "").replaceAll("!LS:", "").replaceAll(" ","");
         if (url.startsWith("ps:")) url = url.replace("ps:", "https://pictshare.net/");
         if (url.startsWith("imgur:")) url = url.replace("imgur:", "https://i.imgur.com/");
         if (url.startsWith("imgbb:")) url = url.replace("imgbb:", "https://i.ibb.co/");
         if (url.startsWith("iili:")) url = url.replace("iili:", "https://iili.io/");
+        if (url.startsWith("yt:")) url = url.replace("yt:", "https://youtu.be/");
         return url;
     }
     public static String shortenLink(String url) {
@@ -76,9 +76,13 @@ public class PictureURLUtils {
         if (url.contains("i.imgur.com/")) url = url.replace("i.imgur.com/", "imgur:");
         if (url.contains("i.ibb.co/:")) url = url.replace("i.ibb.co/", "imgbb:");
         if (url.contains("iili.io/")) url = url.replace("iili.io/", "iili:");
+        if (url.contains("www.youtube.com/")) url = url.replace("www.youtube.com/", "yt:");
+        if (url.contains("youtu.be/")) url = url.replace("youtu.be/", "yt:");
         if (url.startsWith("https://")) {
             url = url.replace("https://", "");
         }
+        if (url.contains("watch?v=")) url = url.replace("watch?v=", "");
+        if (url.contains("&pp=")) url = url.split("&pp=")[0];
         return url;
     }
 }
