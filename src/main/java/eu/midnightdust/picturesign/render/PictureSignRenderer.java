@@ -1,7 +1,6 @@
 package eu.midnightdust.picturesign.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import eu.midnightdust.lib.util.PlatformFunctions;
 import eu.midnightdust.picturesign.util.*;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
@@ -28,6 +27,7 @@ public class PictureSignRenderer {
     private boolean isSafeUrl;
     private boolean hasRotation = false;
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay, boolean front) {
+        if (signBlockEntity.isRemoved()) return;
         String url = PictureURLUtils.getLink(signBlockEntity, front);
         PictureInfo info = null;
         if (!url.contains("://")) {
@@ -48,14 +48,14 @@ public class PictureSignRenderer {
             PictureSignConfig.safeProviders.forEach(safe -> {
                 if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
             });
-            if (!isSafeUrl && !url.startsWith("https://youtu.be/") && !url.startsWith("https://youtube.com/") && !url.startsWith("https://www.youtube.com/")) return;
+            if (!isSafeUrl/* && !url.startsWith("https://youtu.be/") && !url.startsWith("https://youtube.com/") && !url.startsWith("https://www.youtube.com/")*/) return;
         }
-        if ((!PictureSignConfig.enableVideoSigns || !PlatformFunctions.isModLoaded("videolib")) && !PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE, front)) return;
-        if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
-            url = url.replace("https://www.", "https://");
-            url = url.replace("youtube.com/watch?v=", PictureSignConfig.invidiousInstance.replace("https://", "").replace("/", "")+"/latest_version?id=");
-            url = url.replace("youtu.be/", PictureSignConfig.invidiousInstance.replace("https://", "").replace("/", "")+"/latest_version?id=");
-        }
+        if ((!PictureSignConfig.enableVideoSigns/* || !PlatformFunctions.isModLoaded("videolib")*/) && !PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE, front)) return;
+//        if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
+//            url = url.replace("https://www.", "https://");
+//            url = url.replace("youtube.com/watch?v=", PictureSignConfig.invidiousInstance.replace("https://", "").replace("/", "")+"/latest_version?id=");
+//            url = url.replace("youtu.be/", PictureSignConfig.invidiousInstance.replace("https://", "").replace("/", "")+"/latest_version?id=");
+//        }
         World world = signBlockEntity.getWorld();
         BlockPos pos = signBlockEntity.getPos();
         String videoSuffix = front ? "_f" : "_b";

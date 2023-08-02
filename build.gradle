@@ -32,9 +32,6 @@ dependencies {
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
 	modImplementation "maven.modrinth:midnightlib:${project.midnightlib_version}"
 	include "maven.modrinth:midnightlib:${project.midnightlib_version}"
-	modImplementation "maven.modrinth:videolib:${project.videolib_version}"
-	include "maven.modrinth:videolib:${project.videolib_version}"
-	implementation("uk.co.caprica:vlcj:${project.vlcj_version}")
 }
 
 processResources {

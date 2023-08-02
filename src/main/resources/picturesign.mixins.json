@@ -6,7 +6,8 @@
     "MixinSignBlockEntityRenderer",
     "MixinHangingSignBlockEntityRenderer",
     "MixinSignEditScreen",
-    "MixinSignBlockEntity"
+    "MixinSignBlockEntity",
+    "MixinMinecraftClient"
   ],
   "injectors": {
     "defaultRequire": 1

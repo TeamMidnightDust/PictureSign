@@ -23,7 +23,7 @@ public class PictureSignConfig extends MidnightConfig {
     @Entry(min = 0, max = 2048, isSlider = true, category = general) public static int signRenderDistance = 64;
     @Entry(category = general) public static boolean safeMode = true;
     @Entry(category = general) public static List<String> safeProviders = Lists.newArrayList("https://i.imgur.com/", "https://i.ibb.co/", "https://pictshare.net/", "https://iili.io/", "https://vimeo.com/", "https://yewtu.be/");
-    @Entry(category = general) public static String invidiousInstance = "yt.oelrichsgarcia.de";
+//    @Entry(category = general) public static String invidiousInstance = "yt.oelrichsgarcia.de";
     @Comment(category = general) public static Comment ebeWarning;
     @Entry(category = advanced) public static MissingImageMode missingImageMode = MissingImageMode.BLACK;
     @Entry(category = advanced) public static PictureShader pictureShader = PictureShader.PosColTexLight;
