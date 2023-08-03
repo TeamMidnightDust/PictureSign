@@ -3,14 +3,14 @@ package eu.midnightdust.picturesign.util;
 import net.minecraft.util.Identifier;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import eu.midnightdust.picturesign.ogv.VideoManager;
 
 public class VideoHandler {
-    public static List<Identifier> videoPlayers = new ArrayList<>();
-    public static List<Identifier> playedOnce = new ArrayList<>();
+    public static Set<Identifier> videoPlayers = new HashSet<>();
+    public static Set<Identifier> playedOnce = new HashSet<>();
     public static VideoManager videoManager = new VideoManager();
     public static void closePlayer(Identifier id) {
         videoManager.closePlayer(id);

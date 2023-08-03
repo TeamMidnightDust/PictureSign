@@ -69,8 +69,6 @@ public class Video {
 	private long nextFrameUpdate = 0;
 	
 	public Video(Identifier id) {
-		Thread.dumpStack();
-		System.out.println("Create "+id);
 		this.textureId = new Identifier("dynamic/picturesign/video_"+nextId.getAndIncrement());
 		tex = new AbstractTexture() {
 			@Override public void load(ResourceManager manager) throws IOException {}
