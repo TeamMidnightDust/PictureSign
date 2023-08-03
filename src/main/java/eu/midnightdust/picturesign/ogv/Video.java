@@ -3,12 +3,14 @@ package eu.midnightdust.picturesign.ogv;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.IntBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -19,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.lwjgl.system.MemoryUtil;
+
+import com.mojang.blaze3d.platform.GlStateManager;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.MoreFiles;
@@ -47,6 +51,7 @@ public class Video {
 	
 	private volatile AtomicBoolean alive = new AtomicBoolean(true);
 	private volatile boolean reset = false;
+	private boolean destroyed = false;
 	
 	private String url = null;
 	private boolean playing = false;
@@ -105,8 +110,12 @@ public class Video {
 			}
 			nativeBuffer.clear();
 			nativeBuffer.put(frame.rgba()).flip();
-			tex.bindTexture();
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame.width(), frame.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, nativeBuffer);
+			GlStateManager._bindTexture(tex.getGlId()); // do it directly to dodge sketchy mixins
+			GlStateManager._pixelStore(GL_UNPACK_ROW_LENGTH, 0);
+			GlStateManager._pixelStore(GL_UNPACK_SKIP_ROWS, 0);
+			GlStateManager._pixelStore(GL_UNPACK_SKIP_PIXELS, 0);
+			GlStateManager._pixelStore(GL_UNPACK_ALIGNMENT, 4);
+			GlStateManager._texImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame.width(), frame.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, nativeBuffer);
 			
 			if (alSourceName != -1) {
 				alSourcef(alSourceName, AL_GAIN, MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER));
@@ -131,6 +140,9 @@ public class Video {
 			allBuffers.clear();
 			alSourceName = -1;
 		}
+		if (nativeBuffer != null) MemoryUtil.memFree(nativeBuffer);
+		nativeBuffer = null;
+		destroyed = true;
 		MinecraftClient.getInstance().getTextureManager().destroyTexture(textureId);
 	}
 	
@@ -254,6 +266,8 @@ public class Video {
 						videoQueue.put(vid);
 					}
 				}
+			} catch (ClosedChannelException | SocketException e) {
+				// ogv got closed by destroy
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.err.println("IO exception while decoding video from "+url);
