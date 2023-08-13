@@ -22,6 +22,7 @@ public class PictureDownloader {
     public static class PictureData {
         public String url;
         public Identifier identifier;
+        public NativeImage img;
 
         public PictureData(String url) {
             this.url = url;
@@ -52,7 +53,14 @@ public class PictureDownloader {
             }
 
             if (data.identifier == null) {
-                return null;
+            	if (data.img != null) {
+                    NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(data.img);
+
+                    data.identifier = MinecraftClient.getInstance().getTextureManager().registerDynamicTexture(MOD_ID+"/image",
+                            nativeImageBackedTexture);
+            	} else {
+            		return null;
+            	}
             }
 
             return data;
@@ -89,15 +97,12 @@ public class PictureDownloader {
                 InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
 
                 NativeImage nativeImage = NativeImage.read(inputStream);
-                NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(nativeImage);
-
-                Identifier texture = MinecraftClient.getInstance().getTextureManager().registerDynamicTexture(MOD_ID+"/image",
-                        nativeImageBackedTexture);
 
                 // Cache the downloaded picture
                 synchronized (mutex) {
                     PictureData data = this.cache.get(url);
-                    data.identifier = texture;
+                    data.identifier = null;
+                    data.img = nativeImage;
                 }
 
                 if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished downloading picture: " + url);
