@@ -117,6 +117,7 @@ public class PictureSignRenderer {
                 if (PictureSignType.isType(signBlockEntity, PictureSignType.LOOPED_VIDEO, front) && !VideoHandler.hasMedia(videoId)) {
                     VideoHandler.play(videoId, url);
                     VideoHandler.setRepeat(videoId, true);
+                    VideoHandler.setPosition(videoId, pos.getX()+x, pos.getY()+y, pos.getZ()+z);
                 }
                 else if (!VideoHandler.hasMedia(videoId) && !VideoHandler.playedOnce.contains(videoId)) {
                     VideoHandler.play(videoId, url);

@@ -41,4 +41,7 @@ public class VideoHandler {
     public static float getFramerate(Identifier id) {
         return videoManager.getOrCreate(id).getFrameRate();
     }
+	public static void setPosition(Identifier id, float x, float y, float z) {
+        videoManager.getOrCreate(id).setPosition(x, y, z);
+	}
 }

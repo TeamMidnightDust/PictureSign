@@ -6,6 +6,7 @@ import java.io.InterruptedIOException;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -42,6 +43,7 @@ import static org.lwjgl.openal.AL11.*;
 public class Video {
 
 	private static final HttpClient client = HttpClient.newBuilder()
+			.followRedirects(Redirect.NORMAL)
 			.connectTimeout(Duration.ofSeconds(30))
 			.build();
 	
@@ -70,8 +72,11 @@ public class Video {
 
 	private volatile long seekTarget = -1;
 	private volatile boolean audioReady = false;
+	private boolean stereo = false;
 	
 	private long nextFrameUpdate = 0;
+	
+	private float x, y, z;
 	
 	public Video(Identifier id) {
 		this.textureId = new Identifier("dynamic/picturesign/video_"+nextId.getAndIncrement());
@@ -118,9 +123,22 @@ public class Video {
 			GlStateManager._texImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame.width(), frame.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, nativeBuffer);
 			
 			if (alSourceName != -1) {
-				alSourcef(alSourceName, AL_GAIN, MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER));
+				if (stereo) {
+					// do our own fake attenuation
+					float atten = 1-(((float)Math.sqrt(MinecraftClient.getInstance().player.squaredDistanceTo(x, y, z)))/24f);
+					if (atten < 0) atten = 0;
+					alSourcef(alSourceName, AL_GAIN, MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER)*atten);
+				} else {
+					alSourcef(alSourceName, AL_GAIN, MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER));
+					alSource3f(alSourceName,AL_POSITION, x, y, z);
+				}
 				if (alGetSourcei(alSourceName, AL_SOURCE_STATE) != AL_PLAYING) {
 					alSourcePlay(alSourceName);
+					alSourcei(alSourceName, AL_DISTANCE_MODEL, AL_LINEAR_DISTANCE);
+					alSourcei(alSourceName, AL_SOURCE_RELATIVE, AL_FALSE);
+					alSourcef(alSourceName, AL_MAX_DISTANCE, 24);
+					alSourcef(alSourceName, AL_ROLLOFF_FACTOR, 1);
+					alSourcef(alSourceName, AL_REFERENCE_DISTANCE, 0);
 				}
 			}
 		}
@@ -205,8 +223,6 @@ public class Video {
 					// there will be no audio data, let the video run free
 					audioReady = true;
 				}
-				// I'm not totally sure why this is necessary
-				int audioFrameWarmup = 9;
 				while (alive.get()) {
 					ogv.step();
 					if (ogv.isEnd() || reset) {
@@ -214,7 +230,6 @@ public class Video {
 						if (repeat || reset) {
 							reset = false;
 							ogv = new Ogv(src.openStream());
-							audioFrameWarmup = 9;
 							continue;
 						} else {
 							ogv = null;
@@ -236,29 +251,31 @@ public class Video {
 						if (alSourceName == -1) {
 							alSourceName = alGenSources();
 							alSourcef(alSourceName, AL_GAIN, MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER));
+							if (ogv.getVorbisInfo().channels == 2) {
+								stereo = true;
+							} else {
+								stereo = false;
+							}
+						}
+						int[] unqueuedNames = new int[1];
+						while (true) {
+							unqueuedNames[0] = 0;
+							alSourceUnqueueBuffers(alSourceName, unqueuedNames);
+							if (alGetError() == 0 && unqueuedNames[0] != 0) {
+								unusedBuffers.add(unqueuedNames[0]);
+							} else {
+								break;
+							}
 						}
 						
-						if (audioFrameWarmup > 0) {
-							audioFrameWarmup--;
-						} else {
-							int[] unqueuedNames = new int[1];
-							while (true) {
-								unqueuedNames[0] = 0;
-								alSourceUnqueueBuffers(alSourceName, unqueuedNames);
-								if (unqueuedNames[0] != 0) {
-									unusedBuffers.add(unqueuedNames[0]);
-								} else {
-									break;
-								}
-							}
-							
-							var buffer = unusedBuffers.poll();
-							if (buffer == null) {
-								buffer = alGenBuffers();
-								allBuffers.add(buffer.intValue());
-							}
-							alBufferData(buffer, ogv.getVorbisInfo().channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, aud, ogv.getVorbisInfo().rate);
-							alSourceQueueBuffers(alSourceName, buffer);
+						var buffer = unusedBuffers.poll();
+						if (buffer == null) {
+							buffer = alGenBuffers();
+							allBuffers.add(buffer.intValue());
+						}
+						alBufferData(buffer, ogv.getVorbisInfo().channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, aud, ogv.getVorbisInfo().rate);
+						alSourceQueueBuffers(alSourceName, buffer);
+						if (!audioReady && alGetSourcei(alSourceName, AL_BUFFERS_QUEUED) > 12) {
 							audioReady = true;
 						}
 					}
@@ -337,6 +354,12 @@ public class Video {
 
 	public float getFrameRate() {
 		return ogv == null ? 0 : ogv.getTheoraInfo().fps_numerator/((float)ogv.getTheoraInfo().fps_denominator);
+	}
+
+	public void setPosition(float x, float y, float z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
 
 }

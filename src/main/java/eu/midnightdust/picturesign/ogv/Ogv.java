@@ -53,8 +53,8 @@ public class Ogv {
 	private int videobuf_ready = 0;
 	private int audiobuf_fill = 0;
 	private int audiobuf_ready = 0;
-	private short[] audiobuf = new short[12000];
-	private int audiofd_fragsize = 24000;
+	private short[] audiobuf;
+	private int audiofd_fragsize;
 	private boolean end = false;
 	
 	private long granule = 0;
@@ -236,6 +236,8 @@ public class Ogv {
 		if (this.vorbis_p != 0) {
 			this.vd.synthesis_init(this.vi);
 			this.vb.init(this.vd);
+			audiobuf = new short[vi.rate/4];
+			audiofd_fragsize = vi.rate/2;
 //			System.out.printf("Ogg logical stream %x is Vorbis %d channel %d Hz audio.\n", getSerialNo(this.vo), this.vi.channels, this.vi.rate);
 		} else {
 			this.vi.clear();
