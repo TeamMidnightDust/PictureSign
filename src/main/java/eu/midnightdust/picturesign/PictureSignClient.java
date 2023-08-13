@@ -1,6 +1,5 @@
 package eu.midnightdust.picturesign;
 
-import eu.midnightdust.lib.util.PlatformFunctions;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.VideoHandler;
 import net.fabricmc.api.ClientModInitializer;
@@ -30,13 +29,13 @@ public class PictureSignClient implements ClientModInitializer {
 
         KeyBindingHelper.registerKeyBinding(BINDING_COPY_SIGN);
         ClientLoginConnectionEvents.DISCONNECT.register((handler, client) -> {
-            if (PlatformFunctions.isModLoaded("videolib")) {
+            /*if (PlatformFunctions.isModLoaded("videolib"))*/ {
                 VideoHandler.videoPlayers.forEach(VideoHandler::closePlayer);
                 VideoHandler.playedOnce.clear();
             }
         });
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
-            if (PlatformFunctions.isModLoaded("videolib")) {
+            /*if (PlatformFunctions.isModLoaded("videolib"))*/ {
                 BlockPos pos = blockEntity.getPos();
                 Identifier videoId = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ()+"_f");
                 VideoHandler.closePlayer(videoId);

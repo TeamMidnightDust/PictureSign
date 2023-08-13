@@ -5,6 +5,7 @@ import net.minecraft.block.entity.SignBlockEntity;
 public enum PictureSignType {
     NONE, PICTURE, VIDEO, LOOPED_VIDEO;
     public static PictureSignType getType(SignBlockEntity signBlockEntity, boolean front) {
+        if (signBlockEntity == null) return NONE;
         String rowOne = signBlockEntity.getText(front).getMessage(0,false).getString();
         if (rowOne.startsWith("!PS:")) return PICTURE;
         if (rowOne.startsWith("!VS:")) return VIDEO;
