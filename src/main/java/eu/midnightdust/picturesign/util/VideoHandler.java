@@ -17,6 +17,11 @@ public class VideoHandler {
         videoPlayers.remove(id);
         playedOnce.remove(id);
     }
+    public static void closeAll() {
+        try {videoManager.close();} catch (Exception ignored) {}
+        videoPlayers.clear();
+        playedOnce.clear();
+    }
     public static void stop(Identifier id) {
         videoManager.getOrCreate(id).getControlsInterface().stop();
     }

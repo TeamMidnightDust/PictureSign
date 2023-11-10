@@ -7,7 +7,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -21,6 +21,7 @@ import org.lwjgl.glfw.GLFW;
 public class PictureSignClient implements ClientModInitializer {
     public static Logger LOGGER = LogManager.getLogger("PictureSign");
     public static String MOD_ID = "picturesign";
+    public static final boolean hasVideoLib = PlatformFunctions.isModLoaded("videolib");
     public static String[] clipboard = new String[4];
     public static final KeyBinding BINDING_COPY_SIGN = new KeyBinding("key."+MOD_ID+".copy_sign",
             InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_U, "key.categories."+MOD_ID);
@@ -29,14 +30,11 @@ public class PictureSignClient implements ClientModInitializer {
         PictureSignConfig.init(MOD_ID, PictureSignConfig.class);
 
         KeyBindingHelper.registerKeyBinding(BINDING_COPY_SIGN);
-        ClientLoginConnectionEvents.DISCONNECT.register((handler, client) -> {
-            if (PlatformFunctions.isModLoaded("videolib")) {
-                VideoHandler.videoPlayers.forEach(VideoHandler::closePlayer);
-                VideoHandler.playedOnce.clear();
-            }
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            if (hasVideoLib) VideoHandler.closeAll();
         });
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
-            if (PlatformFunctions.isModLoaded("videolib")) {
+            if (hasVideoLib) {
                 BlockPos pos = blockEntity.getPos();
                 Identifier videoId = new Identifier(MOD_ID, pos.getX() + "_" + pos.getY() + "_" + pos.getZ()+"_f");
                 VideoHandler.closePlayer(videoId);

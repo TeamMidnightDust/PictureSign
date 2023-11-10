@@ -50,7 +50,7 @@ public class PictureSignRenderer {
             });
             if (!isSafeUrl && !url.startsWith("https://youtu.be/") && !url.startsWith("https://youtube.com/") && !url.startsWith("https://www.youtube.com/")) return;
         }
-        if ((!PictureSignConfig.enableVideoSigns || !PlatformFunctions.isModLoaded("videolib")) && !PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE, front)) return;
+        if ((!PictureSignConfig.enableVideoSigns || !PictureSignClient.hasVideoLib) && !PictureSignType.isType(signBlockEntity, PictureSignType.PICTURE, front)) return;
         if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
             url = url.replace("https://www.", "https://");
             url = url.replace("youtube.com/watch?v=", PictureSignConfig.invidiousInstance.replace("https://", "").replace("/", "")+"/latest_version?id=");
@@ -65,7 +65,7 @@ public class PictureSignRenderer {
         || (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
                         && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)))
         {
-            VideoHandler.closePlayer(videoId);
+            if (PictureSignClient.hasVideoLib) VideoHandler.closePlayer(videoId);
             PictureURLUtils.cachedJsonData.remove(url);
             return;
         }

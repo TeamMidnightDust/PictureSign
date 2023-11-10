@@ -1,6 +1,5 @@
 package eu.midnightdust.picturesign.screen;
 
-import eu.midnightdust.lib.util.screen.TexturedOverlayButtonWidget;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.PictureSignType;
@@ -15,6 +14,7 @@ import net.minecraft.client.gui.screen.ingame.SignEditScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.TextIconButtonWidget;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.SignBlockEntityRenderer;
@@ -36,9 +36,9 @@ import java.util.stream.IntStream;
 import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
 
 public class PictureSignHelperScreen extends Screen {
-    private static final Identifier TEXTSIGN_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/textsign_button.png");
-    private static final Identifier CLIPBOARD_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/clipboard_button.png");
-    private static final Identifier TRASHBIN_ICON_TEXTURE = new Identifier(MOD_ID,"textures/gui/trashbin_button.png");
+    private static final Identifier TEXTSIGN_ICON_TEXTURE = new Identifier(MOD_ID,"icon/textsign");
+    private static final Identifier CLIPBOARD_ICON_TEXTURE = new Identifier(MOD_ID,"icon/clipboard");
+    private static final Identifier TRASHBIN_ICON_TEXTURE = new Identifier(MOD_ID,"icon/trashbin");
     private final SignBlockEntity sign;
     private SignBlockEntityRenderer.SignModel model;
     protected String[] text;
@@ -72,8 +72,8 @@ public class PictureSignHelperScreen extends Screen {
         }
         this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, (button) -> this.finishEditing()).dimensions(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build());
 
-        if (PictureSignClient.clipboard != null && PictureSignClient.clipboard[0] != null)
-            this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 84, this.height - 40, 20, 20, 0, 0, 20, CLIPBOARD_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
+        if (PictureSignClient.clipboard != null && PictureSignClient.clipboard[0] != null) {
+            TextIconButtonWidget clipboardBuilder = TextIconButtonWidget.builder(Text.empty(), (buttonWidget) -> {
                 for (int i = 0; i < 4; i++) {
                     text[i] = PictureSignClient.clipboard[i];
                     int finalI = i;
@@ -81,9 +81,12 @@ public class PictureSignHelperScreen extends Screen {
                 }
                 assert client != null;
                 client.setScreen(this);
-            }, Text.of("")));
-        if (PictureSignConfig.helperUi)
-            this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 62, this.height - 40, 20, 20, 0, 0, 20, TRASHBIN_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
+            }, true).texture(CLIPBOARD_ICON_TEXTURE, 16, 16).dimension(20, 20).build();
+            clipboardBuilder.setPosition(this.width - 84, this.height - 40);
+            this.addDrawableChild(clipboardBuilder);
+        }
+        if (PictureSignConfig.helperUi) {
+            TextIconButtonWidget trashbinBuilder = TextIconButtonWidget.builder(Text.empty(), (buttonWidget) -> {
                 for (int i = 0; i < 4; i++) {
                     text[i] = "";
                     int finalI = i;
@@ -91,11 +94,17 @@ public class PictureSignHelperScreen extends Screen {
                 }
                 assert client != null;
                 client.setScreen(this);
-            }, Text.of("")));
-        this.addDrawableChild(new TexturedOverlayButtonWidget(this.width - 40, this.height - 40, 20, 20, 0, 0, 20, TEXTSIGN_ICON_TEXTURE, 32, 64, (buttonWidget) -> {
-            switchScreen = true;
-            Objects.requireNonNull(client).setScreen(isHanging ? new HangingSignEditScreen(this.sign, false, front) : new SignEditScreen(this.sign, front, false));
-        }, Text.of("")));
+            }, true).texture(TRASHBIN_ICON_TEXTURE, 16, 16).dimension(20, 20).build();
+            trashbinBuilder.setPosition(this.width - 62, this.height - 40);
+            this.addDrawableChild(trashbinBuilder);
+
+            TextIconButtonWidget textsignBuilder = TextIconButtonWidget.builder(Text.empty(), (buttonWidget) -> {
+                switchScreen = true;
+                Objects.requireNonNull(client).setScreen(isHanging ? new HangingSignEditScreen(this.sign, false, front) : new SignEditScreen(this.sign, front, false));
+            }, true).texture(TEXTSIGN_ICON_TEXTURE, 16, 16).dimension(20, 20).build();
+            textsignBuilder.setPosition(this.width - 40, this.height - 40);
+            this.addDrawableChild(textsignBuilder);
+        }
         if (text[0].startsWith("!VS:")) pictureSignType = PictureSignType.VIDEO;
         if (text[0].startsWith("!LS:")) pictureSignType = PictureSignType.LOOPED_VIDEO;
         this.addDrawableChild(ButtonWidget.builder(Text.of(text[0].startsWith("!PS:") ? "Image" : (text[0].startsWith("!VS:") ? "Video" : "Loop")), (buttonWidget) -> {
@@ -215,6 +224,11 @@ public class PictureSignHelperScreen extends Screen {
             this.changedListener = changedListener;
         }
     }
+    private void finishEditing() {
+        assert this.client != null;
+        switchScreen = false;
+        this.client.setScreen(null);
+    }
     public void removed() {
         if (this.client == null || switchScreen) return;
         ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
@@ -258,15 +272,9 @@ public class PictureSignHelperScreen extends Screen {
             this.finishEditing();
         }
     }
-    private void finishEditing() {
-        sign.markDirty();
-        assert this.client != null;
-        this.client.setScreen(null);
-    }
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if (this.client == null) return;
         DiffuseLighting.disableGuiDepthLighting();
-        this.renderBackground(context);
         context.drawTextWithShadow(textRenderer, Text.of("Link" +
                 (PictureSignConfig.safeMode ? (pictureSignType.equals(PictureSignType.PICTURE) ? " (imgur.com/imgbb.com/iili.io/pictshare.net)" : " (youtube.com/youtu.be/vimeo.com)") : "")),
                 this.width / 2 - 175, this.height / 5 + 3, -8816268);
