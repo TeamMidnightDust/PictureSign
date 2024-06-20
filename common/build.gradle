@@ -7,7 +7,7 @@ dependencies {
     // Do NOT use other classes from fabric loader
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modCompileOnlyApi "maven.modrinth:midnightlib:${rootProject.midnightlib_version}-fabric"
-    //modCompileOnly "maven.modrinth:iris:${project.iris_version}"
+    modCompileOnly "maven.modrinth:iris:${project.iris_version}"
 }
 
 publishing {
