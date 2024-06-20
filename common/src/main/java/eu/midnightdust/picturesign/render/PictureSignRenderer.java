@@ -21,10 +21,6 @@ import static eu.midnightdust.picturesign.PictureSignClient.id;
 
 public class PictureSignRenderer {
     private boolean isSafeUrl;
-    private boolean isDeactivated = false;
-    private boolean playbackStarted = false;
-    private Identifier videoId;
-    private VideoHandler videoHandler;
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay, boolean front) {
         PictureSignType type = PictureSignType.getType(signBlockEntity, front);
@@ -42,6 +38,7 @@ public class PictureSignRenderer {
             url = "https://" + url;
         }
         if (type == PictureSignType.PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
+        if (type == PictureSignType.GIF && !url.contains(".gif")) return;
         if (PictureSignConfig.safeMode) {
             isSafeUrl = false;
             String finalUrl = url;
@@ -59,25 +56,30 @@ public class PictureSignRenderer {
         World world = signBlockEntity.getWorld();
         BlockPos pos = signBlockEntity.getPos();
         String videoSuffix = front ? "_f" : "_b";
-        if (videoId == null) videoId = id(pos.getX() + "_" + pos.getY() + "_" + pos.getZ()+videoSuffix);
-        if (videoHandler == null) videoHandler = new VideoHandler(videoId);
+        Identifier videoId = id(pos.getX() + "_" + pos.getY() + "_" + pos.getZ() + videoSuffix);
+
+        MediaHandler mediaHandler = null;
+        GIFHandler gifHandler = null;
+        if (PictureSignClient.hasWaterMedia) {
+            if (type.isVideo || type.isAudio) mediaHandler = MediaHandler.getOrCreate(videoId);
+            if (type == PictureSignType.GIF) gifHandler = GIFHandler.getOrCreate(videoId);
+        }
 
         if (world != null && ((world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
                 && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)
         || (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
                         && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)))
         {
-            if (PictureSignClient.hasWaterMedia && videoHandler.isWorking() && !videoHandler.isStopped()) {
-                videoHandler.stop();
+            if (mediaHandler != null && mediaHandler.isWorking() && !mediaHandler.isStopped()) {
+                mediaHandler.stop();
             }
-            isDeactivated = true;
+
             PictureURLUtils.cachedJsonData.remove(url);
             return;
         }
-        else if (isDeactivated) {
-            if (PictureSignClient.hasWaterMedia && videoHandler.isWorking() && videoHandler.isStopped())
-                videoHandler.restart();
-            isDeactivated = false;
+        else if (mediaHandler != null && mediaHandler.isDeactivated) {
+            if (mediaHandler.isWorking() && mediaHandler.isStopped())
+                mediaHandler.restart();
         }
 
         String lastLine = signBlockEntity.getText(front).getMessage(3, false).getString();
@@ -121,26 +123,34 @@ public class PictureSignRenderer {
             data = PictureDownloader.getInstance().getPicture(url);
             if (data == null || data.identifier == null) return;
         }
-        else if (type.isVideo) {
+        else if (mediaHandler != null) {
             try {
-                if (type.isLooped && !videoHandler.hasMedia() && !playbackStarted) {
-                    videoHandler.play(url);
-                    videoHandler.setRepeat(true);
-                }
-                else if (!videoHandler.hasMedia() && !playbackStarted) {
-                    videoHandler.play(url);
+                if (!mediaHandler.hasMedia() && !mediaHandler.playbackStarted) {
+                    mediaHandler.play(url, type.isVideo);
+                    if (type.isLooped && !mediaHandler.hasMedia() && !mediaHandler.playbackStarted)
+                        mediaHandler.setRepeat(true);
                 }
 
             } catch (MalformedURLException e) {
                 PictureSignClient.LOGGER.error(e);
                 return;
             }
-            if (info != null && info.start() > 0 && videoHandler.getTime() < info.start()) videoHandler.setTime(info.start());
-            if (info != null && info.end() > 0 && videoHandler.getTime() >= info.end() && !playbackStarted) videoHandler.stop();
+            if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start()) mediaHandler.setTime(info.start());
+            if (info != null && info.end() > 0 && mediaHandler.getTime() >= info.end() && !mediaHandler.playbackStarted) mediaHandler.stop();
+        }
+        else if (type == PictureSignType.GIF) {
+            try {
+                if (!gifHandler.hasMedia() && !gifHandler.playbackStarted) {
+                    gifHandler.play(url);
+                }
+            } catch (MalformedURLException e) {
+                PictureSignClient.LOGGER.error(e);
+                return;
+            }
         }
         else return;
 
-        if (videoId != null && !playbackStarted) playbackStarted = true;
+        if (type.isAudio) return;
 
         float xOffset = 0.0F;
         float zOffset = 0.0F;
@@ -184,14 +194,24 @@ public class PictureSignRenderer {
         if (type == PictureSignType.PICTURE) {
             texture = data.identifier;
         }
-        else if (type.isVideo)
-            if (videoHandler.isWorking()) RenderSystem.setShaderTexture(0, videoHandler.getTexture());
+        else if (type.isVideo && mediaHandler != null) {
+            if (mediaHandler.isWorking()) RenderSystem.setShaderTexture(0, mediaHandler.getTexture());
             else {
-                var id = VideoHandler.getMissingTexture();
+                var id = MediaHandler.getMissingTexture();
                 if (id == null) return;
                 texture = id;
             }
+        }
+        else if (gifHandler != null) {
+            if (gifHandler.isWorking()) RenderSystem.setShaderTexture(0, gifHandler.getTexture());
+            else {
+                var id = MediaHandler.getMissingTexture();
+                if (id == null) return;
+                texture = id;
+            }
+        }
         else return;
+
         if (texture != null) RenderSystem.setShaderTexture(0, texture);
 
         if (PictureSignConfig.translucency) RenderSystem.enableBlend();

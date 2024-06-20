@@ -65,16 +65,24 @@ public class PictureURLUtils {
         String text = signBlockEntity.getText(front).getMessage(0, false).getString() +
                 signBlockEntity.getText(front).getMessage(1, false).getString();
         if (!signBlockEntity.getText(front).getMessage(2, false).getString().matches("(.*\\d:.*\\d:.*\\d)")) text += signBlockEntity.getText(front).getMessage(2, false).getString();
-        String url = text.replaceAll("!PS:", "").replaceAll("!VS:", "").replaceAll("!LS:", "").replaceAll(" ","");
+        String url = text.replaceAll("!PS:", "")
+                .replaceAll("!GS:", "")
+                .replaceAll("!VS:", "")
+                .replaceAll("!LS:", "")
+                .replaceAll("!AS:", "")
+                .replaceAll("!ALS:", "")
+                .replaceAll(" ","");
         if (url.startsWith("ps:")) url = url.replace("ps:", "https://pictshare.net/");
         if (url.startsWith("imgur:")) url = url.replace("imgur:", "https://i.imgur.com/");
         if (url.startsWith("imgbb:")) url = url.replace("imgbb:", "https://i.ibb.co/");
         if (url.startsWith("iili:")) url = url.replace("iili:", "https://iili.io/");
+        if (url.startsWith("tenor:")) url = url.replace("tenor:", "https://media1.tenor.com/m/");
         if (url.startsWith("yt:")) url = url.replace("yt:", "https://youtu.be/");
         return url;
     }
     public static String shortenLink(String url) {
         if (url.contains("pictshare.net/")) url = url.replace("pictshare.net/", "ps:");
+        if (url.contains("media1.tenor.com/m/")) url = url.replace("media1.tenor.com/m/", "tenor:");
         if (url.contains("i.imgur.com/")) url = url.replace("i.imgur.com/", "imgur:");
         if (url.contains("i.ibb.co/:")) url = url.replace("i.ibb.co/", "imgbb:");
         if (url.contains("iili.io/")) url = url.replace("iili.io/", "iili:");

@@ -4,21 +4,19 @@ import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.text.Text;
 
 public enum PictureSignType {
-    NONE(Text.empty(),                        ""),
-    PICTURE(Text.of("Image"),           "!PS:"),
+    NONE(Text.empty(),                        "", false, false, false),
+    PICTURE(Text.of("Image"),           "!PS:", false, false, false),
+    GIF(Text.of("GIF"),                 "!GS:", true, false, false),
     VIDEO(Text.of("Video"),             "!VS:", false, true, false),
     LOOPED_VIDEO(Text.of("Video Loop"), "!LS:", true, true, false),
     AUDIO(Text.of("Audio"),             "!AS:", false, false, true),
-    LOOPED_AUDIO(Text.of("Audio Loop"), "!LAS:", true, false, true);
+    LOOPED_AUDIO(Text.of("Audio Loop"), "!ALS:", true, false, true);
 
     public final Text name;
     public final String format;
     public final boolean isLooped;
     public final boolean isVideo;
     public final boolean isAudio;
-    PictureSignType(Text name, String format) {
-        this(name, format, false, false, false);
-    }
 
     PictureSignType(Text name, String format, boolean isLooped, boolean isVideo, boolean isAudio) {
         this.name = name;
@@ -33,6 +31,7 @@ public enum PictureSignType {
     }
     public static PictureSignType getType(String lineOne) {
         if (lineOne.startsWith("!PS:")) return PICTURE;
+        else if (lineOne.startsWith("!GS:")) return GIF;
         else if (lineOne.startsWith("!VS:")) return VIDEO;
         else if (lineOne.startsWith("!LS:")) return LOOPED_VIDEO;
         else if (lineOne.startsWith("!AS:")) return AUDIO;
@@ -41,7 +40,8 @@ public enum PictureSignType {
     }
     public PictureSignType next() {
         return switch (this) {
-            case PICTURE -> VIDEO;
+            case PICTURE -> GIF;
+            case GIF -> VIDEO;
             case VIDEO -> LOOPED_VIDEO;
             case LOOPED_VIDEO -> AUDIO;
             case AUDIO -> LOOPED_AUDIO;

@@ -7,6 +7,7 @@ import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.SignBlockEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
@@ -20,11 +21,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SignBlockEntityRenderer.class)
 public abstract class MixinSignBlockEntityRenderer implements BlockEntityRenderer<SignBlockEntity> {
     @Unique private static final MinecraftClient client = MinecraftClient.getInstance();
-    @Unique PictureSignRenderer psRenderer = new PictureSignRenderer();
+    @Unique private PictureSignRenderer psRenderer;
+
+    @Inject(at = @At("TAIL"), method = "<init>")
+    public void ps$onInit(BlockEntityRendererFactory.Context ctx, CallbackInfo ci) {
+        psRenderer = new PictureSignRenderer();
+    }
 
     @Inject(at = @At("HEAD"), method = "render")
     public void ps$onRender(SignBlockEntity sign, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, CallbackInfo ci) {
-        if (PictureSignConfig.enabled) {
+        if (PictureSignConfig.enabled && psRenderer != null) {
             if (PictureSignType.isNotOfType(sign, PictureSignType.NONE, true)) psRenderer.render(sign, matrixStack, light, overlay, true);
             if (PictureSignType.isNotOfType(sign, PictureSignType.NONE, false)) psRenderer.render(sign, matrixStack, light, overlay, false);
         }

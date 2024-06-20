@@ -21,8 +21,10 @@ public class PictureSignConfig extends MidnightConfig {
     @Entry(category = advanced) public static boolean debug = false;
     @Entry(min = 1, max = 10, isSlider = true, category = advanced) public static int maxThreads = 4;
     @Entry(min = 0, max = 2048, isSlider = true, category = general) public static int signRenderDistance = 64;
-    @Entry(category = general) public static boolean safeMode = true;
-    @Entry(category = general) public static List<String> safeProviders = Lists.newArrayList("https://i.imgur.com/", "https://i.ibb.co/", "https://pictshare.net/", "https://iili.io/", "https://vimeo.com/", "https://yewtu.be/");
+    @Entry(category = advanced) public static boolean safeMode = true;
+    @Entry(category = advanced) public static List<String> safeProviders = Lists.newArrayList("https://i.imgur.com/", "https://i.ibb.co/", "https://pictshare.net/", "https://iili.io/", "https://media1.tenor.com/");
+    @Entry(category = advanced) public static List<String> safeGifProviders = Lists.newArrayList("https://i.imgur.com/", "https://media1.tenor.com/");
+    @Entry(category = advanced) public static List<String> safeMultimediaProviders = Lists.newArrayList("https://vimeo.com/", "https://yewtu.be/");
     @Entry(category = general) public static String invidiousInstance = "yt.oelrichsgarcia.de";
     @Comment(category = general) public static Comment ebeWarning;
     @Entry(category = advanced) public static MissingImageMode missingImageMode = MissingImageMode.BLACK;

@@ -1,0 +1,68 @@
+package eu.midnightdust.picturesign.util;
+
+import me.srrapero720.watermedia.api.image.ImageAPI;
+import me.srrapero720.watermedia.api.image.ImageCache;
+import me.srrapero720.watermedia.api.math.MathAPI;
+import me.srrapero720.watermedia.api.url.UrlAPI;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.Identifier;
+
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class GIFHandler {
+    public static Map<Identifier, GIFHandler> gifPlayers = new HashMap<>();
+
+    public final Identifier id;
+    public boolean playbackStarted;
+    private ImageCache player;
+    private static final MinecraftClient client = MinecraftClient.getInstance();
+    private long tick = 0L;
+
+    private GIFHandler(Identifier id) {
+        System.out.println("New GIF handler :" + id);
+        this.id = id;
+        gifPlayers.put(id, this);
+    }
+    public static GIFHandler getOrCreate(Identifier id) {
+        if (gifPlayers.containsKey(id)) return gifPlayers.get(id);
+        else return new GIFHandler(id);
+    }
+    public void tick() {
+        if (player != null && player.getRenderer() != null && tick < player.getRenderer().duration) tick += 1;
+        else tick = 0;
+    }
+
+    public void closePlayer() {
+        player.release();
+        player = null;
+        gifPlayers.remove(this.id);
+    }
+    public static void closePlayer(Identifier videoId) {
+        if (gifPlayers.containsKey(videoId)) gifPlayers.get(videoId).closePlayer();
+    }
+    public static void closeAll() {
+        gifPlayers.forEach((id, handler) -> handler.closePlayer());
+        gifPlayers.clear();
+    }
+
+    public void play(String url) throws MalformedURLException {
+        System.out.println(url);
+        System.out.println(UrlAPI.fixURL(url).assumeVideo);
+        this.player = ImageAPI.getCache(url, MinecraftClient.getInstance());
+        player.load();
+        this.playbackStarted = true;
+    }
+    public boolean hasMedia() {
+        return player != null && player.getStatus() == ImageCache.Status.READY;
+    }
+    public int getTexture() {
+        return player.getRenderer().texture(tick,
+                (MathAPI.tickToMs(GIFHandler.client.getRenderTickCounter().getTickDelta(true))), true);
+    }
+    public boolean isWorking() {
+        if (player != null && player.getException() != null) player.getException().fillInStackTrace();
+        return player != null && player.getStatus() == ImageCache.Status.READY && player.getRenderer() != null;
+    }
+}

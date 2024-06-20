@@ -274,8 +274,14 @@ public class PictureSignHelperScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
         if (this.client == null) return;
         DiffuseLighting.disableGuiDepthLighting();
-        context.drawTextWithShadow(textRenderer, Text.of("Link" +
-                (PictureSignConfig.safeMode ? (type.equals(PictureSignType.PICTURE) ? " (imgur.com/imgbb.com/iili.io/pictshare.net)" : " (youtube.com/youtu.be/vimeo.com)") : "")),
+        String enabledWebsites = "";
+        if (PictureSignConfig.safeMode) {
+            if (type.equals(PictureSignType.PICTURE)) enabledWebsites = " (imgur.com/imgbb.com/iili.io/pictshare.net)";
+            else if (type.equals(PictureSignType.GIF)) enabledWebsites = " (imgur.com/tenor.com)";
+            else if (type.isVideo) enabledWebsites = " (youtube.com/youtu.be/vimeo.com)";
+            else if (type.isAudio) enabledWebsites = " (youtube.com/youtu.be/vimeo.com/freesound.org)";
+        }
+        context.drawTextWithShadow(textRenderer, Text.of("Link" + enabledWebsites),
                 this.width / 2 - 175, this.height / 5 + 3, -8816268);
         context.drawTextWithShadow(textRenderer, Text.of("Width"),this.width / 2 - 175, this.height / 5 + 60, -8816268);
         context.drawTextWithShadow(textRenderer, Text.of("Height"),this.width / 2 - 140, this.height / 5 + 60, -8816268);
