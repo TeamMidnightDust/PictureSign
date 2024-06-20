@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "picturesign",
+  "version": "${version}",
+
+  "name": "PictureSign",
+  "description": "Use signs to display custom images and videos completely client-side!",
+  "authors": [
+    "Motschen",
+    "TeamMidnightDust"
+  ],
+  "contact": {
+    "homepage": "https://www.midnightdust.eu/",
+    "sources": "https://github.com/TeamMidnightDust/PictureSign",
+    "issues": "https://github.com/TeamMidnightDust/PictureSign/issues"
+  },
+
+  "license": "MIT",
+  "icon": "assets/picturesign/icon.png",
+
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "eu.midnightdust.picturesign.fabric.PictureSignClientFabric"
+    ]
+  },
+
+  "depends": {
+    "midnightlib": "*",
+    "watermedia": "*"
+  },
+  "mixins": [
+    "picturesign.mixins.json"
+  ]
+}

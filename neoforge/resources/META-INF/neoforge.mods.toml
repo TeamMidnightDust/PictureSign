@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+#issueTrackerURL = ""
+license = "MIT License"
+
+[[mods]]
+modId = "picturesign"
+version = "${version}"
+displayName = "PictureSign"
+logoFile = "icon.png"
+authors = "Motschen, TeamMidnightDust"
+description = '''
+Use signs to display custom images and videos completely client-side!
+'''
+
+[[mixins]]
+config = "picturesign.mixins.json"
+
+[[dependencies.visualoverhaul]]
+modId = "neoforge"
+mandatory = true
+versionRange = "[21.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.visualoverhaul]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.visualoverhaul]]
+modId = "midnightlib"
+mandatory = true
+versionRange = "[1.0,)"
+ordering = "AFTER"
+side = "BOTH"
