@@ -2,6 +2,7 @@ package eu.midnightdust.picturesign.screen;
 
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.NetworkUtil;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.minecraft.block.*;
@@ -229,14 +230,11 @@ public class PictureSignHelperScreen extends Screen {
     }
     public void removed() {
         if (this.client == null || switchScreen) return;
-        ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
         for (int i = 0; i < 4; i++) {
             int finalI = i;
             sign.changeText(changer -> changer.withMessage(finalI, Text.of(text[finalI])), front);
         }
-        if (clientPlayNetworkHandler != null) {
-            clientPlayNetworkHandler.sendPacket(new UpdateSignC2SPacket(this.sign.getPos(), front, this.text[0], this.text[1], this.text[2], this.text[3]));
-        }
+        NetworkUtil.sendPacket(new UpdateSignC2SPacket(this.sign.getPos(), front, this.text[0], this.text[1], this.text[2], this.text[3]));
     }
 
     private String[] breakLink(String prefix, String link) {

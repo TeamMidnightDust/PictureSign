@@ -4,7 +4,6 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.render.PictureSignRenderer;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import net.minecraft.block.entity.SignBlockEntity;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
@@ -18,9 +17,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static eu.midnightdust.picturesign.PictureSignClient.client;
+
 @Mixin(SignBlockEntityRenderer.class)
 public abstract class MixinSignBlockEntityRenderer implements BlockEntityRenderer<SignBlockEntity> {
-    @Unique private static final MinecraftClient client = MinecraftClient.getInstance();
     @Unique private PictureSignRenderer psRenderer;
 
     @Inject(at = @At("TAIL"), method = "<init>")

@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(HangingSignBlockEntityRenderer.class)
 public abstract class MixinHangingSignBlockEntityRenderer implements BlockEntityRenderer<SignBlockEntity> {
-    @Unique private static final MinecraftClient client = MinecraftClient.getInstance();
     @Unique PictureSignRenderer psRenderer = new PictureSignRenderer();
 
     @Inject(at = @At("HEAD"), method = "render")

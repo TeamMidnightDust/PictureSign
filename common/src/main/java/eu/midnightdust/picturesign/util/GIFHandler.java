@@ -11,13 +11,14 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static eu.midnightdust.picturesign.PictureSignClient.client;
+
 public class GIFHandler {
     public static Map<Identifier, GIFHandler> gifPlayers = new HashMap<>();
 
     public final Identifier id;
     public boolean playbackStarted;
     private ImageCache player;
-    private static final MinecraftClient client = MinecraftClient.getInstance();
     private long tick = 0L;
 
     private GIFHandler(Identifier id) {
@@ -59,7 +60,7 @@ public class GIFHandler {
     }
     public int getTexture() {
         return player.getRenderer().texture(tick,
-                (MathAPI.tickToMs(GIFHandler.client.getRenderTickCounter().getTickDelta(true))), true);
+                (MathAPI.tickToMs(client.getRenderTickCounter().getTickDelta(true))), true);
     }
     public boolean isWorking() {
         if (player != null && player.getException() != null) player.getException().fillInStackTrace();
