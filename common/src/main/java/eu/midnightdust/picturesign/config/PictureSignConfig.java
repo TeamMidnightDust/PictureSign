@@ -14,6 +14,7 @@ public class PictureSignConfig extends MidnightConfig {
 
     @Entry(category = general) public static boolean enabled = true;
     @Entry(category = general) public static boolean enableVideoSigns = true;
+    @Entry(min = 1, max = 1000, isSlider = true, category = general) public static int audioDistanceMultiplier = 10;
     @Entry(category = general) public static boolean translucency = false;
     @Entry(category = general) public static boolean fullBrightPicture = false;
     @Entry(category = general) public static boolean helperUi = true;
@@ -24,8 +25,7 @@ public class PictureSignConfig extends MidnightConfig {
     @Entry(category = advanced) public static boolean safeMode = true;
     @Entry(category = advanced) public static List<String> safeProviders = Lists.newArrayList("https://i.imgur.com/", "https://i.ibb.co/", "https://pictshare.net/", "https://iili.io/", "https://media1.tenor.com/");
     @Entry(category = advanced) public static List<String> safeGifProviders = Lists.newArrayList("https://i.imgur.com/", "https://media1.tenor.com/");
-    @Entry(category = advanced) public static List<String> safeMultimediaProviders = Lists.newArrayList("https://vimeo.com/", "https://yewtu.be/");
-    @Entry(category = general) public static String invidiousInstance = "yt.oelrichsgarcia.de";
+    @Entry(category = advanced) public static List<String> safeMultimediaProviders = Lists.newArrayList("https://youtube.com/", "https://www.youtube.com/", "https://youtu.be/","https://vimeo.com/");
     @Comment(category = general) public static Comment ebeWarning;
     @Entry(category = advanced) public static MissingImageMode missingImageMode = MissingImageMode.BLACK;
     @Entry(category = advanced) public static PictureShader pictureShader = PictureShader.PosColTexLight;

@@ -42,10 +42,22 @@ public class PictureSignRenderer {
         if (PictureSignConfig.safeMode) {
             isSafeUrl = false;
             String finalUrl = url;
-            PictureSignConfig.safeProviders.forEach(safe -> {
-                if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
-            });
-            if (!isSafeUrl && !url.startsWith("https://youtu.be/") && !url.startsWith("https://youtube.com/") && !url.startsWith("https://www.youtube.com/")) return;
+            if (type == PictureSignType.PICTURE) {
+                PictureSignConfig.safeProviders.forEach(safe -> {
+                    if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
+                });
+            }
+            if (type == PictureSignType.GIF) {
+                PictureSignConfig.safeGifProviders.forEach(safe -> {
+                    if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
+                });
+            }
+            else if (type.isVideo || type.isAudio) {
+                PictureSignConfig.safeMultimediaProviders.forEach(safe -> {
+                    if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
+                });
+            }
+            if (!isSafeUrl) return;
         }
         if ((!PictureSignConfig.enableVideoSigns || !PictureSignClient.hasWaterMedia) && type != PictureSignType.PICTURE) return;
         if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
@@ -61,7 +73,7 @@ public class PictureSignRenderer {
         MediaHandler mediaHandler = null;
         GIFHandler gifHandler = null;
         if (PictureSignClient.hasWaterMedia) {
-            if (type.isVideo || type.isAudio) mediaHandler = MediaHandler.getOrCreate(videoId);
+            if (type.isVideo || type.isAudio) mediaHandler = MediaHandler.getOrCreate(videoId, pos);
             if (type == PictureSignType.GIF) gifHandler = GIFHandler.getOrCreate(videoId);
         }
 
@@ -135,6 +147,7 @@ public class PictureSignRenderer {
                 PictureSignClient.LOGGER.error(e);
                 return;
             }
+            mediaHandler.setVolumeBasedOnDistance();
             if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start()) mediaHandler.setTime(info.start());
             if (info != null && info.end() > 0 && mediaHandler.getTime() >= info.end() && !mediaHandler.playbackStarted) mediaHandler.stop();
         }

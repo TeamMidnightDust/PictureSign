@@ -8,29 +8,46 @@ import me.srrapero720.watermedia.api.url.UrlAPI;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import static eu.midnightdust.picturesign.PictureSignClient.client;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
 
 public class MediaHandler {
     public static Map<Identifier, MediaHandler> mediaPlayers = new HashMap<>();
 
     public final Identifier id;
+    public final BlockPos pos;
     public boolean playbackStarted = false;
     public boolean isDeactivated;
     private SyncBasePlayer player;
 
-    private MediaHandler(Identifier id) {
+    private MediaHandler(Identifier id, BlockPos pos) {
         this.id = id;
+        this.pos = pos;
         mediaPlayers.put(id, this);
     }
-    public static MediaHandler getOrCreate(Identifier id) {
+    public static MediaHandler getOrCreate(Identifier id, BlockPos pos) {
         if (mediaPlayers.containsKey(id)) return mediaPlayers.get(id);
-        else return new MediaHandler(id);
+        else return new MediaHandler(id, pos);
+    }
+    public void setVolumeBasedOnDistance() {
+        if (client.player == null) return;
+
+        Vec3d playerPos = client.player.getPos();
+        double distance = this.pos.getSquaredDistance(playerPos) / PictureSignConfig.audioDistanceMultiplier;
+        this.setVolume((int) Math.clamp(100-distance, 0, 100));
+    }
+    private void setVolume(int volume) {
+        player.setVolume(volume);
     }
 
     public void closePlayer() {

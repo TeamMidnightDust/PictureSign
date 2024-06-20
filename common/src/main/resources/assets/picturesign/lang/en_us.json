@@ -5,6 +5,7 @@
 	
 	"picturesign.midnightconfig.enabled":"Enable Pictures",
 	"picturesign.midnightconfig.enableVideoSigns":"Enable Videos",
+	"picturesign.midnightconfig.audioDistanceMultiplier":"Audio Distance Multiplier",
 	"picturesign.midnightconfig.translucency":"Enable Translucency",
 	"picturesign.midnightconfig.translucency.tooltip":"Translucency doesn't work too great on block entities\n(and therefore signs)",
 	"picturesign.midnightconfig.fullBrightPicture":"Full-bright Pictures",
@@ -17,7 +18,9 @@
 	"picturesign.midnightconfig.safeMode":"Safe mode",
 	"picturesign.midnightconfig.safeMode.tooltip":"Only load images from trusted providers",
 	"picturesign.midnightconfig.ebeWarning":"§cIf you are using the mod 'Enhanced Block Entities' make sure to disable anything sign-related in it's config!",
-	"picturesign.midnightconfig.safeProviders":"Safe providers",
+	"picturesign.midnightconfig.safeProviders":"Safe Image Providers",
+	"picturesign.midnightconfig.safeGifProviders":"Safe GIF Providers",
+	"picturesign.midnightconfig.safeMultimediaProviders":"Safe Multimedia Providers",
 	"picturesign.midnightconfig.invidiousInstance":"Invidious Instance",
 	"picturesign.midnightconfig.invidiousInstance.tooltip":"Select the Invidious instance that is being used to play YouTube videos. \nYou can find a list of them at\ndocs.invidious.io/instances/",
 	"picturesign.midnightconfig.missingImageMode":"Missing image mode",
