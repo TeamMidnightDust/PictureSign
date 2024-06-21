@@ -4,17 +4,13 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import me.srrapero720.watermedia.api.player.SyncBasePlayer;
 import me.srrapero720.watermedia.api.player.SyncMusicPlayer;
 import me.srrapero720.watermedia.api.player.SyncVideoPlayer;
-import me.srrapero720.watermedia.api.url.UrlAPI;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,19 +36,26 @@ public class MediaHandler {
         else return new MediaHandler(id, pos);
     }
     public void setVolumeBasedOnDistance() {
-        if (client.player == null) return;
+        if (player == null || client.player == null) return;
 
         Vec3d playerPos = client.player.getPos();
+        if (PictureSignConfig.audioDistanceMultiplier == 0) {
+            setVolume(0);
+            return;
+        }
         double distance = this.pos.getSquaredDistance(playerPos) / PictureSignConfig.audioDistanceMultiplier;
-        this.setVolume((int) Math.clamp(100-distance, 0, 100));
+        setVolume((int) Math.clamp(100-distance, 0, 100));
     }
     private void setVolume(int volume) {
         player.setVolume(volume);
     }
 
     public void closePlayer() {
-        if (player != null) player.release();
-        mediaPlayers.remove(id);
+        if (player != null) {
+            player.stop();
+            player.release();
+        }
+        //mediaPlayers.remove(id);
         player = null;
     }
     public static void closePlayer(Identifier videoId) {
@@ -80,12 +83,10 @@ public class MediaHandler {
     }
 
     public void play(String url, boolean isVideo) throws MalformedURLException {
-        URL fixedUrl = UrlAPI.fixURL(url).url;
-        System.out.println("Fixed URL: " + fixedUrl);
         this.player = isVideo ? new SyncVideoPlayer(MinecraftClient.getInstance()) : new SyncMusicPlayer();
         mediaPlayers.put(id, this);
         if (player.isBroken()) return;
-        player.start(fixedUrl.toString());
+        player.start(url);
         this.playbackStarted = true;
     }
     public boolean hasMedia() {
@@ -105,7 +106,7 @@ public class MediaHandler {
         return -1;
     }
     public boolean isWorking() {
-        return mediaPlayers.containsKey(id) && !mediaPlayers.get(id).player.isBroken();
+        return mediaPlayers.containsKey(id) && mediaPlayers.get(id).player != null && !mediaPlayers.get(id).player.isBroken();
     }
     public static Identifier getMissingTexture() {
         if (PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.TRANSPARENT)) return null;

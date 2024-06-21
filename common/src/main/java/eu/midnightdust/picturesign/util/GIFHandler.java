@@ -49,8 +49,6 @@ public class GIFHandler {
     }
 
     public void play(String url) throws MalformedURLException {
-        System.out.println(url);
-        System.out.println(UrlAPI.fixURL(url).assumeVideo);
         this.player = ImageAPI.getCache(url, MinecraftClient.getInstance());
         player.load();
         this.playbackStarted = true;

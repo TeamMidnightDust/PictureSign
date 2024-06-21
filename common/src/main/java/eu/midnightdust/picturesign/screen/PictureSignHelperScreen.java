@@ -12,10 +12,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HangingSignEditScreen;
 import net.minecraft.client.gui.screen.ingame.SignEditScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.TextIconButtonWidget;
+import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.SignBlockEntityRenderer;
@@ -29,6 +26,7 @@ import net.minecraft.util.Identifier;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -47,6 +45,7 @@ public class PictureSignHelperScreen extends Screen {
     private final boolean isHanging;
     protected final WoodType signType;
     private static boolean switchScreen = false;
+    private List<ClickableWidget> pictureWidgets = new ArrayList<>();
     private PictureSignType type = PictureSignType.PICTURE;
 
     public PictureSignHelperScreen(SignBlockEntity sign, boolean front, boolean filtered) {
@@ -153,6 +152,12 @@ public class PictureSignHelperScreen extends Screen {
         this.addDrawableChild(posXWidget);
         this.addDrawableChild(posYWidget);
         this.addDrawableChild(posZWidget);
+
+        pictureWidgets.add(widthWidget);
+        pictureWidgets.add(heightWidget);
+        pictureWidgets.add(posXWidget);
+        pictureWidgets.add(posYWidget);
+        pictureWidgets.add(posZWidget);
         if (text[2].matches("(.*\\d:.*\\d:.*\\d)")) addRotationWidgets();
         this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), AbstractSignBlock.getWoodType(sign.getCachedState().getBlock()));
     }
@@ -183,6 +188,10 @@ public class PictureSignHelperScreen extends Screen {
         this.addDrawableChild(rotXWidget);
         this.addDrawableChild(rotYWidget);
         this.addDrawableChild(rotZWidget);
+
+        pictureWidgets.add(rotXWidget);
+        pictureWidgets.add(rotYWidget);
+        pictureWidgets.add(rotZWidget);
     }
     public void applyRotation(int rotation, int index) {
         String[] dimensions = new String[3];
@@ -279,6 +288,8 @@ public class PictureSignHelperScreen extends Screen {
             else if (type.isVideo) enabledWebsites = " (youtube.com/youtu.be/vimeo.com)";
             else if (type.isAudio) enabledWebsites = " (youtube.com/youtu.be/vimeo.com/freesound.org)";
         }
+        if (type.isAudio) pictureWidgets.forEach(widget -> widget.active = false);
+        else pictureWidgets.forEach(widget -> widget.active = true);
         context.drawTextWithShadow(textRenderer, Text.of("Link" + enabledWebsites),
                 this.width / 2 - 175, this.height / 5 + 3, -8816268);
         context.drawTextWithShadow(textRenderer, Text.of("Width"),this.width / 2 - 175, this.height / 5 + 60, -8816268);

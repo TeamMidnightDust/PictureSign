@@ -14,7 +14,7 @@ public class PictureSignConfig extends MidnightConfig {
 
     @Entry(category = general) public static boolean enabled = true;
     @Entry(category = general) public static boolean enableVideoSigns = true;
-    @Entry(min = 1, max = 1000, isSlider = true, category = general) public static int audioDistanceMultiplier = 10;
+    @Entry(min = 0, max = 1000, isSlider = true, category = general) public static int audioDistanceMultiplier = 30;
     @Entry(category = general) public static boolean translucency = false;
     @Entry(category = general) public static boolean fullBrightPicture = false;
     @Entry(category = general) public static boolean helperUi = true;
