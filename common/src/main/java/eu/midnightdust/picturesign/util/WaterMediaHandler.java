@@ -80,6 +80,7 @@ public class WaterMediaHandler extends MediaHandler {
         if (player instanceof SyncVideoPlayer videoPlayer) return videoPlayer.getGlTexture();
         return -1;
     }
+    @Override
     public boolean isWorking() {
         return mediaHandlers.containsKey(id) && mediaHandlers.get(id) instanceof WaterMediaHandler waterMediaHandler
                 && waterMediaHandler.player != null && !waterMediaHandler.player.isBroken();

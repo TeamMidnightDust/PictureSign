@@ -9,7 +9,10 @@ import net.minecraft.util.math.Vec3d;
 import java.util.HashMap;
 import java.util.Map;
 
-import static eu.midnightdust.picturesign.PictureSignClient.*;
+import static eu.midnightdust.picturesign.PictureSignClient.client;
+import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
+import static eu.midnightdust.picturesign.PictureSignClient.id;
+
 
 public abstract class MediaHandler {
     public static Map<Identifier, MediaHandler> mediaHandlers = new HashMap<>();
