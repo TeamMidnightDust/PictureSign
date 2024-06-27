@@ -21,6 +21,7 @@ import static eu.midnightdust.picturesign.PictureSignClient.id;
 
 public class PictureSignRenderer {
     private boolean isSafeUrl;
+    private boolean isSafeJsonUrl;
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay, boolean front) {
         PictureSignType type = PictureSignType.getType(signBlockEntity, front);
@@ -29,11 +30,21 @@ public class PictureSignRenderer {
         if (!url.contains("://")) {
             url = "https://" + url;
         }
-        if (url.endsWith(".json")) {
+        isSafeJsonUrl = false;
+        String jsonUrl = url;
+        PictureSignConfig.safeJsonProviders.forEach(safe -> {
+            if (!isSafeUrl) isSafeJsonUrl = jsonUrl.startsWith(safe);
+        });
+        if (url.endsWith(".json") || isSafeJsonUrl) {
+            if (PictureSignConfig.safeMode) {
+                if (!isSafeJsonUrl) return;
+            }
+
             info = PictureURLUtils.infoFromJson(url);
             if (info == null) return;
             url = info.url();
         }
+
         if (!url.contains("://")) {
             url = "https://" + url;
         }
@@ -62,8 +73,6 @@ public class PictureSignRenderer {
         if ((!PictureSignConfig.enableVideoSigns || !PictureSignClient.hasWaterMedia) && type != PictureSignType.PICTURE) return;
         if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
             url = url.replace("https://www.", "https://");
-            //url = url.replace("youtube.com/watch?v=", PictureSignConfig.invidiousInstance.replace("https://", "").replace("/", "")+"/latest_version?id=");
-            //url = url.replace("youtu.be/", PictureSignConfig.invidiousInstance.replace("https://", "").replace("/", "")+"/latest_version?id=");
         }
         World world = signBlockEntity.getWorld();
         BlockPos pos = signBlockEntity.getPos();
@@ -74,7 +83,11 @@ public class PictureSignRenderer {
         GIFHandler gifHandler = null;
         if (PictureSignClient.hasWaterMedia) {
             if (type.isVideo || type.isAudio) mediaHandler = MediaHandler.getOrCreate(videoId, pos);
-            if (type == PictureSignType.GIF) gifHandler = GIFHandler.getOrCreate(videoId);
+            else if (type == PictureSignType.GIF) gifHandler = GIFHandler.getOrCreate(videoId);
+            else {
+                MediaHandler.closePlayer(videoId);
+                GIFHandler.closePlayer(videoId);
+            }
         }
 
         if (world != null && ((world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
@@ -147,11 +160,12 @@ public class PictureSignRenderer {
                 PictureSignClient.LOGGER.error(e);
                 return;
             }
+            if (info != null && info.volume() != -1) mediaHandler.setMaxVolume(info.volume());
             mediaHandler.setVolumeBasedOnDistance();
             if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start()) mediaHandler.setTime(info.start());
             if (info != null && info.end() > 0 && mediaHandler.getTime() >= info.end() && !mediaHandler.playbackStarted) mediaHandler.stop();
         }
-        else if (type == PictureSignType.GIF) {
+        else if (type == PictureSignType.GIF && gifHandler != null) {
             try {
                 if (!gifHandler.hasMedia() && !gifHandler.playbackStarted) {
                     gifHandler.play(url);

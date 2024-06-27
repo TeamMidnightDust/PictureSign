@@ -26,6 +26,7 @@ public class PictureSignConfig extends MidnightConfig {
     @Entry(category = advanced) public static List<String> safeProviders = Lists.newArrayList("https://i.imgur.com/", "https://i.ibb.co/", "https://pictshare.net/", "https://iili.io/", "https://media1.tenor.com/");
     @Entry(category = advanced) public static List<String> safeGifProviders = Lists.newArrayList("https://i.imgur.com/", "https://media1.tenor.com/");
     @Entry(category = advanced) public static List<String> safeMultimediaProviders = Lists.newArrayList("https://youtube.com/", "https://www.youtube.com/", "https://youtu.be/","https://vimeo.com/");
+    @Entry(category = advanced) public static List<String> safeJsonProviders = Lists.newArrayList("https://github.com/", "https://gist.github.com/", "https://www.jsonkeeper.com/", "https://api.npoint.io/", "https://api.jsonsilo.com/");
     @Comment(category = general) public static Comment ebeWarning;
     @Entry(category = advanced) public static MissingImageMode missingImageMode = MissingImageMode.BLACK;
     @Entry(category = advanced) public static PictureShader pictureShader = PictureShader.PosColTexLight;

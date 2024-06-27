@@ -25,6 +25,7 @@ public class MediaHandler {
     public boolean playbackStarted = false;
     public boolean isDeactivated;
     private SyncBasePlayer player;
+    private int maxVolume = 100;
 
     private MediaHandler(Identifier id, BlockPos pos) {
         this.id = id;
@@ -44,10 +45,13 @@ public class MediaHandler {
             return;
         }
         double distance = this.pos.getSquaredDistance(playerPos) / PictureSignConfig.audioDistanceMultiplier;
-        setVolume((int) Math.clamp(100-distance, 0, 100));
+        setVolume((int) Math.clamp(maxVolume-distance, 0, 100));
     }
     private void setVolume(int volume) {
         player.setVolume(volume);
+    }
+    public void setMaxVolume(int volume) {
+        maxVolume = volume;
     }
 
     public void closePlayer() {

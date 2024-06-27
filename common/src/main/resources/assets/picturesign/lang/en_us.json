@@ -21,6 +21,7 @@
 	"picturesign.midnightconfig.safeProviders":"Safe Image Providers",
 	"picturesign.midnightconfig.safeGifProviders":"Safe GIF Providers",
 	"picturesign.midnightconfig.safeMultimediaProviders":"Safe Multimedia Providers",
+	"picturesign.midnightconfig.safeJsonProviders":"Safe JSON Providers",
 	"picturesign.midnightconfig.invidiousInstance":"Invidious Instance",
 	"picturesign.midnightconfig.invidiousInstance.tooltip":"Select the Invidious instance that is being used to play YouTube videos. \nYou can find a list of them at\ndocs.invidious.io/instances/",
 	"picturesign.midnightconfig.missingImageMode":"Missing image mode",
