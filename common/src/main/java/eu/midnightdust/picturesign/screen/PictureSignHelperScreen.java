@@ -13,7 +13,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HangingSignEditScreen;
 import net.minecraft.client.gui.screen.ingame.SignEditScreen;
 import net.minecraft.client.gui.widget.*;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.SignBlockEntityRenderer;
 import net.minecraft.client.util.SpriteIdentifier;
@@ -45,7 +44,7 @@ public class PictureSignHelperScreen extends Screen {
     private final boolean isHanging;
     protected final WoodType signType;
     private static boolean switchScreen = false;
-    private List<ClickableWidget> pictureWidgets = new ArrayList<>();
+    private final List<ClickableWidget> pictureWidgets = new ArrayList<>();
     private PictureSignType type = PictureSignType.PICTURE;
 
     public PictureSignHelperScreen(SignBlockEntity sign, boolean front, boolean filtered) {
@@ -110,11 +109,6 @@ public class PictureSignHelperScreen extends Screen {
             text[0] = text[0].replace(type.format, "");
             type = type.next();
             text[0] = type.format + text[0];
-//            if (text[0].startsWith("!PS:")) text[0] = "!VS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
-//            else if (text[0].startsWith("!VS:")) text[0] = "!LS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
-//            else if (text[0].startsWith("!LS:")) text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
-//            else text[0] = "!PS:" + text[0].replace("!PS:","").replace("!VS:", "").replace("!LS:", "");
-//            type = PictureSignType.getType(text[0]);
             buttonWidget.setMessage(type.name);
 
             sign.changeText(changer -> changer.withMessage(0, Text.of(text[0])), front);

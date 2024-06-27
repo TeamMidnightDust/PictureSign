@@ -13,7 +13,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 
-import static eu.midnightdust.picturesign.PictureSignClient.*;
+import static eu.midnightdust.picturesign.PictureSignClient.BINDING_COPY_SIGN;
+import static eu.midnightdust.picturesign.PictureSignClient.id;
+import static eu.midnightdust.picturesign.PictureSignClient.clipboard;
 
 public class PictureSignClientFabric implements ClientModInitializer {
     @Override
@@ -22,10 +24,10 @@ public class PictureSignClientFabric implements ClientModInitializer {
 
         KeyBindingHelper.registerKeyBinding(BINDING_COPY_SIGN);
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            if (hasWaterMedia) MediaHandler.closeAll();
+            if (MediaHandler.hasValidImplementation()) MediaHandler.closeAll();
         });
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
-            if (hasWaterMedia) {
+            if (MediaHandler.hasValidImplementation()) {
                 BlockPos pos = blockEntity.getPos();
                 Identifier videoId = id(pos.getX() + "_" + pos.getY() + "_" + pos.getZ()+"_f");
                 MediaHandler.closePlayer(videoId);

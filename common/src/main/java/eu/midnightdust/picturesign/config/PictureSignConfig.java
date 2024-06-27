@@ -13,7 +13,7 @@ public class PictureSignConfig extends MidnightConfig {
     private static final String advanced = "advanced";
 
     @Entry(category = general) public static boolean enabled = true;
-    @Entry(category = general) public static boolean enableVideoSigns = true;
+    @Entry(category = general) public static boolean enableMultimediaSigns = true;
     @Entry(min = 0, max = 1000, isSlider = true, category = general) public static int audioDistanceMultiplier = 30;
     @Entry(category = general) public static boolean translucency = false;
     @Entry(category = general) public static boolean fullBrightPicture = false;

@@ -3,7 +3,6 @@ package eu.midnightdust.picturesign.util;
 import me.srrapero720.watermedia.api.image.ImageAPI;
 import me.srrapero720.watermedia.api.image.ImageCache;
 import me.srrapero720.watermedia.api.math.MathAPI;
-import me.srrapero720.watermedia.api.url.UrlAPI;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
 

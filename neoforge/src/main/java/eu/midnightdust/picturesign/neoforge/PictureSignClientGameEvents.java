@@ -16,7 +16,6 @@ import net.neoforged.neoforge.event.level.ChunkEvent;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
 import static eu.midnightdust.picturesign.PictureSignClient.client;
 import static eu.midnightdust.picturesign.PictureSignClient.clipboard;
-import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
 import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
 import static eu.midnightdust.picturesign.PictureSignClient.BINDING_COPY_SIGN;
 
@@ -24,12 +23,12 @@ import static eu.midnightdust.picturesign.PictureSignClient.BINDING_COPY_SIGN;
 public class PictureSignClientGameEvents {
     @SubscribeEvent()
     public static void sendPacketOnLogin(ClientPlayerNetworkEvent.LoggingIn event) {
-        if (hasWaterMedia) MediaHandler.closeAll();
+        if (MediaHandler.hasValidImplementation()) MediaHandler.closeAll();
     }
     @SubscribeEvent
     public static void onBlockEntityUnload(ChunkEvent.Unload event) {
-        for (BlockPos pos : event.getChunk().getBlockEntityPositions()) {
-            if (hasWaterMedia) {
+        if (MediaHandler.hasValidImplementation()) {
+            for (BlockPos pos : event.getChunk().getBlockEntityPositions()) {
                 Identifier videoId = id(pos.getX() + "_" + pos.getY() + "_" + pos.getZ() + "_f");
                 MediaHandler.closePlayer(videoId);
                 Identifier videoId2 = id(pos.getX() + "_" + pos.getY() + "_" + pos.getZ() + "_b");

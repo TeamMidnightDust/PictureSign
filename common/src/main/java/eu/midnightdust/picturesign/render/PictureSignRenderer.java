@@ -2,29 +2,44 @@ package eu.midnightdust.picturesign.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.lib.util.PlatformFunctions;
-import eu.midnightdust.picturesign.util.*;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.GIFHandler;
+import eu.midnightdust.picturesign.util.IrisCompat;
+import eu.midnightdust.picturesign.util.MediaHandler;
+import eu.midnightdust.picturesign.util.PictureDownloader;
+import eu.midnightdust.picturesign.util.PictureInfo;
+import eu.midnightdust.picturesign.util.PictureSignType;
+import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.SignBlockEntity;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.World;
-import org.joml.*;
+import org.joml.Matrix4f;
 
 import java.net.MalformedURLException;
 
+import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
+import static eu.midnightdust.picturesign.util.PictureSignType.*;
 
 public class PictureSignRenderer {
     private boolean isSafeUrl;
     private boolean isSafeJsonUrl;
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay, boolean front) {
-        PictureSignType type = PictureSignType.getType(signBlockEntity, front);
+        PictureSignType type = getType(signBlockEntity, front);
         String url = PictureURLUtils.getLink(signBlockEntity, front);
         PictureInfo info = null;
         if (!url.contains("://") && !url.startsWith("file:") && !url.startsWith("rp:")) {
@@ -49,17 +64,17 @@ public class PictureSignRenderer {
             }
         }
 
-        if (type == PictureSignType.PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg") && !url.startsWith("rp:")) return;
-        if (type == PictureSignType.GIF && !url.contains(".gif")) return;
+        if (type == PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg") && !url.startsWith("rp:")) return;
+        if (type == GIF && !url.contains(".gif")) return;
         if (PictureSignConfig.safeMode && !url.startsWith("file:") && !url.startsWith("rp:")) {
             isSafeUrl = false;
             String finalUrl = url;
-            if (type == PictureSignType.PICTURE) {
+            if (type == PICTURE) {
                 PictureSignConfig.safeProviders.forEach(safe -> {
                     if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
                 });
             }
-            if (type == PictureSignType.GIF) {
+            if (type == GIF) {
                 PictureSignConfig.safeGifProviders.forEach(safe -> {
                     if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
                 });
@@ -71,7 +86,7 @@ public class PictureSignRenderer {
             }
             if (!isSafeUrl) return;
         }
-        if ((!PictureSignConfig.enableVideoSigns || !PictureSignClient.hasWaterMedia) && type != PictureSignType.PICTURE) return;
+        if ((!PictureSignConfig.enableMultimediaSigns || !MediaHandler.hasValidImplementation()) && type != PICTURE) return;
         if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
             url = url.replace("https://www.", "https://");
         }
@@ -82,9 +97,9 @@ public class PictureSignRenderer {
 
         MediaHandler mediaHandler = null;
         GIFHandler gifHandler = null;
-        if (PictureSignClient.hasWaterMedia) {
+        if (MediaHandler.hasValidImplementation()) {
             if (type.isVideo || type.isAudio) mediaHandler = MediaHandler.getOrCreate(videoId, pos);
-            else if (type == PictureSignType.GIF) gifHandler = GIFHandler.getOrCreate(videoId);
+            else if (type == GIF && hasWaterMedia) gifHandler = GIFHandler.getOrCreate(videoId);
             else {
                 MediaHandler.closePlayer(videoId);
                 GIFHandler.closePlayer(videoId);
@@ -145,7 +160,7 @@ public class PictureSignRenderer {
 
         // Download the picture data
         PictureDownloader.PictureData data = null;
-        if (type == PictureSignType.PICTURE) {
+        if (type == PICTURE) {
             data = PictureDownloader.getInstance().getPicture(url);
             if (data == null || data.identifier == null) return;
         }
@@ -157,7 +172,7 @@ public class PictureSignRenderer {
                         mediaHandler.setRepeat(true);
                 }
 
-            } catch (MalformedURLException e) {
+            } catch (Exception e) {
                 PictureSignClient.LOGGER.error(e);
                 return;
             }
@@ -166,7 +181,7 @@ public class PictureSignRenderer {
             if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start()) mediaHandler.setTime(info.start());
             if (info != null && info.end() > 0 && mediaHandler.getTime() >= info.end() && !mediaHandler.playbackStarted) mediaHandler.stop();
         }
-        else if (type == PictureSignType.GIF && gifHandler != null) {
+        else if (type == GIF && gifHandler != null) {
             try {
                 if (!gifHandler.hasMedia() && !gifHandler.playbackStarted) {
                     gifHandler.play(url);
@@ -219,7 +234,7 @@ public class PictureSignRenderer {
         else RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapProgram);
 
         Identifier texture = null;
-        if (type == PictureSignType.PICTURE) {
+        if (type == PICTURE) {
             texture = data.identifier;
         }
         else if (type.isVideo && mediaHandler != null) {
