@@ -27,7 +27,7 @@ public class PictureSignRenderer {
         PictureSignType type = PictureSignType.getType(signBlockEntity, front);
         String url = PictureURLUtils.getLink(signBlockEntity, front);
         PictureInfo info = null;
-        if (!url.contains("://")) {
+        if (!url.contains("://") && !url.startsWith("file:") && !url.startsWith("rp:")) {
             url = "https://" + url;
         }
         isSafeJsonUrl = false;
@@ -43,14 +43,15 @@ public class PictureSignRenderer {
             info = PictureURLUtils.infoFromJson(url);
             if (info == null) return;
             url = info.url();
+
+            if (!url.contains("://")) {
+                url = "https://" + url;
+            }
         }
 
-        if (!url.contains("://")) {
-            url = "https://" + url;
-        }
-        if (type == PictureSignType.PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg")) return;
+        if (type == PictureSignType.PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg") && !url.startsWith("rp:")) return;
         if (type == PictureSignType.GIF && !url.contains(".gif")) return;
-        if (PictureSignConfig.safeMode) {
+        if (PictureSignConfig.safeMode && !url.startsWith("file:") && !url.startsWith("rp:")) {
             isSafeUrl = false;
             String finalUrl = url;
             if (type == PictureSignType.PICTURE) {
