@@ -48,7 +48,7 @@ public class PictureSignRenderer {
         isSafeJsonUrl = false;
         String jsonUrl = url;
         PictureSignConfig.safeJsonProviders.forEach(safe -> {
-            if (!isSafeUrl) isSafeJsonUrl = jsonUrl.startsWith(safe);
+            if (!isSafeJsonUrl) isSafeJsonUrl = jsonUrl.startsWith(safe);
         });
         if (url.endsWith(".json") || isSafeJsonUrl) {
             if (PictureSignConfig.safeMode) {

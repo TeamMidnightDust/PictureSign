@@ -30,7 +30,9 @@
   },
 
   "depends": {
-    "midnightlib": "*",
+    "midnightlib": "*"
+  },
+  "recommends": {
     "watermedia": "*"
   },
   "mixins": [
