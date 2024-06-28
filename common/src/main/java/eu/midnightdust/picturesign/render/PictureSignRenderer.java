@@ -168,6 +168,7 @@ public class PictureSignRenderer {
             try {
                 if (!mediaHandler.hasMedia() && !mediaHandler.playbackStarted) {
                     mediaHandler.play(url, type.isVideo);
+                    if (info != null && info.start() > 0) mediaHandler.setTime(info.start());
                     if (type.isLooped && !mediaHandler.hasMedia() && !mediaHandler.playbackStarted)
                         mediaHandler.setRepeat(true);
                 }
