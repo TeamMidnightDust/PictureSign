@@ -177,10 +177,13 @@ public class PictureSignRenderer {
                 PictureSignClient.LOGGER.error(e);
                 return;
             }
-            if (info != null && info.volume() != -1) mediaHandler.setMaxVolume(info.volume());
+            if (info != null && info.volume() >= 0) mediaHandler.setMaxVolume(info.volume());
             mediaHandler.setVolumeBasedOnDistance();
             if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start()) mediaHandler.setTime(info.start());
-            if (info != null && info.end() > 0 && mediaHandler.getTime() >= info.end() && !mediaHandler.playbackStarted) mediaHandler.stop();
+            if (info != null && info.end() > 0 && mediaHandler.getTime() > info.end()) {
+                if (type.isLooped) mediaHandler.setTime(info.start() > 0 ? info.start() : 0);
+                else mediaHandler.stop();
+            }
         }
         else if (type == GIF && gifHandler != null) {
             try {
@@ -239,8 +242,15 @@ public class PictureSignRenderer {
             texture = data.identifier;
         }
         else if (type.isVideo && mediaHandler != null) {
-            if (mediaHandler.isWorking()) RenderSystem.setShaderTexture(0, mediaHandler.getTexture());
-            else {
+            boolean hasVideoTexture = false;
+            if (mediaHandler.isWorking()) {
+                int rawTexture = mediaHandler.getTexture();
+                if (rawTexture != -1) {
+                    RenderSystem.setShaderTexture(0, rawTexture);
+                    hasVideoTexture = true;
+                }
+            }
+            if (!hasVideoTexture) {
                 var id = MediaHandler.getMissingTexture();
                 if (id == null) return;
                 texture = id;

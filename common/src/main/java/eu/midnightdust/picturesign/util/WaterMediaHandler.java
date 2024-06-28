@@ -7,6 +7,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.lwjgl.opengl.GL11;
 
 public class WaterMediaHandler extends MediaHandler {
     private SyncBasePlayer player;
@@ -77,7 +78,10 @@ public class WaterMediaHandler extends MediaHandler {
     }
     @Override
     public int getTexture() {
-        if (player instanceof SyncVideoPlayer videoPlayer) return videoPlayer.getGlTexture();
+        if (player instanceof SyncVideoPlayer videoPlayer) {
+            int tex = videoPlayer.getGlTexture();
+            if (GL11.glIsTexture(tex)) return tex;
+        }
         return -1;
     }
     @Override
