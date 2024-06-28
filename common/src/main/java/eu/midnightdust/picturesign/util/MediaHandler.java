@@ -33,6 +33,10 @@ public abstract class MediaHandler {
         // Add new implementations here via Mixin
         else return null;
     }
+    public static boolean hasValidImplementation() { // Mixin here to add new Multimedia implementations
+        if (hasWaterMedia) return true;
+        else return false;
+    }
     public void setVolumeBasedOnDistance() {
         if (!isWorking() || client.player == null) return;
 
@@ -91,9 +95,5 @@ public abstract class MediaHandler {
         if (PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.TRANSPARENT)) return null;
         return PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.BLACK) ?
                 (id("textures/black.png")) : (TextureManager.MISSING_IDENTIFIER);
-    }
-    public static boolean hasValidImplementation() { // Mixin here to add new Multimedia implementations
-        if (hasWaterMedia) return true;
-        else return false;
     }
 }

@@ -23,7 +23,7 @@ public class PictureSignConfig extends MidnightConfig {
     @Entry(min = 1, max = 10, isSlider = true, category = advanced) public static int maxThreads = 4;
     @Entry(min = 0, max = 2048, isSlider = true, category = general) public static int signRenderDistance = 64;
     @Entry(category = advanced) public static boolean safeMode = true;
-    @Entry(category = advanced) public static List<String> safeProviders = Lists.newArrayList("https://i.imgur.com/", "https://i.ibb.co/", "https://pictshare.net/", "https://iili.io/", "https://media1.tenor.com/");
+    @Entry(category = advanced) public static List<String> safeProviders = Lists.newArrayList("https://i.imgur.com/", "https://i.ibb.co/", "https://pictshare.net/", "https://iili.io/");
     @Entry(category = advanced) public static List<String> safeGifProviders = Lists.newArrayList("https://i.imgur.com/", "https://media1.tenor.com/");
     @Entry(category = advanced) public static List<String> safeMultimediaProviders = Lists.newArrayList("https://youtube.com/", "https://www.youtube.com/", "https://youtu.be/","https://vimeo.com/");
     @Entry(category = advanced) public static List<String> safeJsonProviders = Lists.newArrayList("https://github.com/", "https://gist.github.com/", "https://www.jsonkeeper.com/", "https://api.npoint.io/", "https://api.jsonsilo.com/");
