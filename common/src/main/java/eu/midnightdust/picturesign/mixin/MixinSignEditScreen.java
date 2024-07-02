@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
 
-import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
 
 @Mixin(AbstractSignEditScreen.class)

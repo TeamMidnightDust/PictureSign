@@ -5,15 +5,28 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.NetworkUtil;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
-import net.minecraft.block.*;
+import net.minecraft.block.AbstractSignBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.HangingSignBlock;
+import net.minecraft.block.SignBlock;
+import net.minecraft.block.WallHangingSignBlock;
+import net.minecraft.block.WoodType;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HangingSignEditScreen;
 import net.minecraft.client.gui.screen.ingame.SignEditScreen;
-import net.minecraft.client.gui.widget.*;
-import net.minecraft.client.render.*;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.widget.SliderWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.TextIconButtonWidget;
+import net.minecraft.client.render.DiffuseLighting;
+import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.render.TexturedRenderLayers;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.SignBlockEntityRenderer;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
@@ -277,25 +290,25 @@ public class PictureSignHelperScreen extends Screen {
         DiffuseLighting.disableGuiDepthLighting();
         String enabledWebsites = "";
         if (PictureSignConfig.safeMode) {
-            if (type.equals(PictureSignType.PICTURE)) enabledWebsites = " (imgur.com/imgbb.com/iili.io/pictshare.net)";
-            else if (type.equals(PictureSignType.GIF)) enabledWebsites = " (imgur.com/tenor.com)";
-            else if (type.isVideo) enabledWebsites = " (youtube.com/youtu.be/vimeo.com)";
-            else if (type.isAudio) enabledWebsites = " (youtube.com/youtu.be/vimeo.com/freesound.org)";
+            if (type.equals(PictureSignType.PICTURE)) enabledWebsites = "(imgur.com/imgbb.com/iili.io/pictshare.net)";
+            else if (type.equals(PictureSignType.GIF)) enabledWebsites = "(imgur.com/tenor.com)";
+            else if (type.isVideo) enabledWebsites = "(youtube.com/youtu.be/vimeo.com)";
+            else if (type.isAudio) enabledWebsites = "(youtube.com/youtu.be/vimeo.com/freesound.org)";
         }
         if (type.isAudio) pictureWidgets.forEach(widget -> widget.active = false);
         else pictureWidgets.forEach(widget -> widget.active = true);
-        context.drawTextWithShadow(textRenderer, Text.of("Link" + enabledWebsites),
+        context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.link", enabledWebsites),
                 this.width / 2 - 175, this.height / 5 + 3, -8816268);
-        context.drawTextWithShadow(textRenderer, Text.of("Width"),this.width / 2 - 175, this.height / 5 + 60, -8816268);
-        context.drawTextWithShadow(textRenderer, Text.of("Height"),this.width / 2 - 140, this.height / 5 + 60, -8816268);
-        context.drawTextWithShadow(textRenderer, Text.of("PosX"),this.width / 2 - 105, this.height / 5 + 60, -8816268);
-        context.drawTextWithShadow(textRenderer, Text.of("PosY"),this.width / 2 - 70, this.height / 5 + 60, -8816268);
-        context.drawTextWithShadow(textRenderer, Text.of("PosZ"),this.width / 2 - 35, this.height / 5 + 60, -8816268);
-        context.drawTextWithShadow(textRenderer, Text.of("Mode"),this.width / 2, this.height / 5 + 60, -8816268);
+        context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.width"),this.width / 2 - 175, this.height / 5 + 60, -8816268);
+        context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.height"),this.width / 2 - 140, this.height / 5 + 60, -8816268);
+        context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.pos_x"),this.width / 2 - 105, this.height / 5 + 60, -8816268);
+        context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.pos_y"),this.width / 2 - 70, this.height / 5 + 60, -8816268);
+        context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.pos_z"),this.width / 2 - 35, this.height / 5 + 60, -8816268);
+        context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.mode"),this.width / 2, this.height / 5 + 60, -8816268);
         if (text[2].matches("(.*\\d:.*\\d:.*\\d)")) {
-            context.drawTextWithShadow(textRenderer, Text.of("RotX"),this.width / 2 - 175, this.height / 5 + 92, -8816268);
-            context.drawTextWithShadow(textRenderer, Text.of("RotY"),this.width / 2 - 103, this.height / 5 + 92, -8816268);
-            context.drawTextWithShadow(textRenderer, Text.of("RotZ"),this.width / 2 - 30, this.height / 5 + 92, -8816268);
+            context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.rot_x"),this.width / 2 - 175, this.height / 5 + 92, -8816268);
+            context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.rot_y"),this.width / 2 - 103, this.height / 5 + 92, -8816268);
+            context.drawTextWithShadow(textRenderer, Text.translatable("picturesign.helper.rot_z"),this.width / 2 - 30, this.height / 5 + 92, -8816268);
         }
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 40, 16777215);
         MatrixStack matrices = context.getMatrices();

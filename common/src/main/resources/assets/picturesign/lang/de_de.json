@@ -2,6 +2,8 @@
 	"picturesign.midnightconfig.title":"PictureSign Konfiguration",
 	
 	"picturesign.midnightconfig.enabled":"Aktiviere Bilder",
+	"picturesign.midnightconfig.enableMultimediaSigns":"Aktiviere Multimedia",
+	"picturesign.midnightconfig.audioDistanceMultiplier":"Audio-Distanz Multiplikator",
 	"picturesign.midnightconfig.translucency":"Aktiviere Lichtdurchlässigkeit",
 	"picturesign.midnightconfig.translucency.tooltip":"Lichtdurchlässigkeit funktioniert teilweise nicht richtig\nbei Block-Entities (und dementsprechend Schildern)",
 	"picturesign.midnightconfig.helperUi":"Aktiviere Hilfsoberfäche",
@@ -12,21 +14,37 @@
 	"picturesign.midnightconfig.safeMode":"Sicherer Modus",
 	"picturesign.midnightconfig.safeMode.tooltip":"Lädt nur Bilder von vertrauten Seiten",
 	"picturesign.midnightconfig.ebeWarning":"§cWenn du die Mod 'Enhanced Block Entities' benutzt, stelle sicher, dass du alles in Relation zu Schildern in der EBE Config deaktiviert hast!",
-	"picturesign.midnightconfig.safeProviders":"Sichere Anbieter",
+	"picturesign.midnightconfig.safeProviders":"Sichere Bildanbieter",
+	"picturesign.midnightconfig.safeGifProviders":"Sichere GIF-Anbieter",
+	"picturesign.midnightconfig.safeMultimediaProviders":"Sichere Multimedia-Anbieter",
+	"picturesign.midnightconfig.safeJsonProviders":"Sichere JSON-Anbieter",
 	"picturesign.midnightconfig.missingImageMode":"Darstellung fehlender Texturen",
 	"picturesign.midnightconfig.enum.MissingImageMode.BLACK":"Schwarz",
 	"picturesign.midnightconfig.enum.MissingImageMode.MISSING_TEXTURE":"Schwarz & Lila",
 	"picturesign.midnightconfig.enum.MissingImageMode.TRANSPARENT":"Transparent",
+
 	"key.picturesign.copy_sign": "Text eines Schildes kopieren",
 	"key.picturesign.edit_sign":"Schild bearbeiten",
 
 	"picturesign.midnightconfig.category.1general": "Generell",
 	"picturesign.midnightconfig.category.advanced": "Fortgeschritten",
-	"picturesign.midnightconfig.enableVideoSigns": "Aktiviere Videos",
 	"picturesign.midnightconfig.fullBrightPicture": "Höchste Helligkeit",
 	"picturesign.midnightconfig.fullBrightPicture.tooltip": "Sorgt dafür, dass Bilder immer vollkommen beleuchtet dargestellt werden",
-	"picturesign.midnightconfig.invidiousInstance": "Invidious-Instanz",
-	"picturesign.midnightconfig.invidiousInstance.tooltip": "Wähle die Invidious-Instanz aus, die zur Wiedergabe von YouTube-Videos verwendet wird. \nEine Liste dieser ist zu finden unter\ndocs.invidious.io/instances/",
 	"picturesign.midnightconfig.pictureShader": "Render-Programm",
-	"picturesign.midnightconfig.pictureShader.tooltip": "Wähle das Shader-Programm, mit dem die Bilder dargestellt werden, was nützlich ist, wenn diese mit Shaderpacks nicht richtig dargestellt werden"
+	"picturesign.midnightconfig.pictureShader.tooltip": "Wähle das Shader-Programm, mit dem die Bilder dargestellt werden, was nützlich ist, wenn diese mit Shaderpacks nicht richtig dargestellt werden",
+
+	"picturesign.type.image": "Bild",
+
+	"picturesign.helper.width": "Breite",
+	"picturesign.helper.height": "Höhe",
+	"picturesign.helper.mode": "Modus",
+
+	"picturesign.error": "FEHLER: ",
+	"picturesign.error.imageNotFound": "Das angegebene Bild konnte nicht gefunden werden.\nBist du offline oder ist die Website down?",
+	"picturesign.error.missingVLC": "VLC ist nicht installiert oder konnte nicht gefunden werden.",
+	"picturesign.error.missingWatermedia": "Installiere WATERMeDIA, um GIFs, Videos und Audios zu genießen.",
+	"picturesign.error.unknownFiletype": "Der Dateityp des Bildes wird nicht von PictureSign unterstützt.",
+	"picturesign.error.unknownSigntype": "Diese Version von PictureSign unterstützt keine Schilder des angegebenen Typen.",
+	"picturesign.error.unsafeJsonUrl": "Die angegebene JSON URL ist nicht als sicher bekannt.\nNutze einen anderen Anbieter oder ändere die PictureSign Konfiguration.",
+	"picturesign.error.unsafeUrl": "Die angegebene URL ist nicht als sicher bekannt.\nNutze einen anderen Anbieter oder ändere die PictureSign Konfiguration."
 }

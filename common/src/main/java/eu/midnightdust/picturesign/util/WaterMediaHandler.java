@@ -1,5 +1,6 @@
 package eu.midnightdust.picturesign.util;
 
+import me.srrapero720.watermedia.api.player.PlayerAPI;
 import me.srrapero720.watermedia.api.player.SyncBasePlayer;
 import me.srrapero720.watermedia.api.player.SyncMusicPlayer;
 import me.srrapero720.watermedia.api.player.SyncVideoPlayer;
@@ -8,6 +9,8 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.lwjgl.opengl.GL11;
+
+import static eu.midnightdust.picturesign.PictureSignClient.client;
 
 public class WaterMediaHandler extends MediaHandler {
     private SyncBasePlayer player;
@@ -54,7 +57,7 @@ public class WaterMediaHandler extends MediaHandler {
 
     @Override
     public void play(String url, boolean isVideo) {
-        this.player = isVideo ? new SyncVideoPlayer(MinecraftClient.getInstance()) : new SyncMusicPlayer();
+        this.player = isVideo ? new SyncVideoPlayer(client) : new SyncMusicPlayer();
         mediaHandlers.put(id, this);
         if (player.isBroken()) return;
         player.start(url);
@@ -83,6 +86,10 @@ public class WaterMediaHandler extends MediaHandler {
             if (GL11.glIsTexture(tex)) return tex;
         }
         return -1;
+    }
+    @Override
+    public boolean isReady() {
+        return PlayerAPI.isReady();
     }
     @Override
     public boolean isWorking() {

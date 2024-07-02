@@ -2,7 +2,6 @@ package eu.midnightdust.picturesign.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.midnightdust.lib.util.PlatformFunctions;
-import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.GIFHandler;
 import eu.midnightdust.picturesign.util.IrisCompat;
@@ -13,32 +12,55 @@ import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.SignBlockEntity;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.OrderedText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
-import java.net.MalformedURLException;
+import java.util.Iterator;
 
+import static eu.midnightdust.picturesign.PictureSignClient.client;
 import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
-import static eu.midnightdust.picturesign.util.PictureSignType.*;
+import static eu.midnightdust.picturesign.util.PictureSignType.GIF;
+import static eu.midnightdust.picturesign.util.PictureSignType.PICTURE;
+import static eu.midnightdust.picturesign.util.PictureSignType.getType;
 
 public class PictureSignRenderer {
     private boolean isSafeUrl;
     private boolean isSafeJsonUrl;
 
-    public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, int light, int overlay, boolean front) {
+    @Nullable private Text errorMessage;
+    public static final Text ERROR = Text.translatable("picturesign.error");
+    public static final Text MISSING_VLC = ERROR.copy().append(Text.translatable("picturesign.error.missingVLC"));
+    public static final Text MISSING_WATERMEDIA = ERROR.copy().append(Text.translatable("picturesign.error.missingWatermedia"));
+    public static final Text IMAGE_NOT_FOUND = ERROR.copy().append(Text.translatable("picturesign.error.imageNotFound"));
+    public static final Text UNKNOWN_FILETYPE = ERROR.copy().append(Text.translatable("picturesign.error.unknownFiletype"));
+    public static final Text UNKNOWN_SIGNTYPE = ERROR.copy().append(Text.translatable("picturesign.error.unknownSigntype"));
+    public static final Text UNSAFE_JSON_URL = ERROR.copy().append(Text.translatable("picturesign.error.unsafeJsonUrl"));
+    public static final Text UNSAFE_URL = ERROR.copy().append(Text.translatable("picturesign.error.unsafeUrl"));
+
+    public static final Identifier RAW_TEXTURE = id("internal_raw_texture");
+
+    public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, VertexConsumerProvider vertices, int light, int overlay, boolean front) {
+        errorMessage = null;
         PictureSignType type = getType(signBlockEntity, front);
         String url = PictureURLUtils.getLink(signBlockEntity, front);
         PictureInfo info = null;
@@ -51,21 +73,21 @@ public class PictureSignRenderer {
             if (!isSafeJsonUrl) isSafeJsonUrl = jsonUrl.startsWith(safe);
         });
         if (url.endsWith(".json") || isSafeJsonUrl) {
-            if (PictureSignConfig.safeMode) {
-                if (!isSafeJsonUrl) return;
-            }
+            if (PictureSignConfig.safeMode && !isSafeJsonUrl) errorMessage = UNSAFE_JSON_URL;
 
-            info = PictureURLUtils.infoFromJson(url);
-            if (info == null) return;
-            url = info.url();
+            if (errorMessage == null) {
+                info = PictureURLUtils.infoFromJson(url);
+                if (info == null) return;
+                url = info.url();
 
-            if (!url.contains("://")) {
-                url = "https://" + url;
+                if (!url.contains("://")) {
+                    url = "https://" + url;
+                }
             }
         }
 
-        if (type == PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg") && !url.startsWith("rp:")) return;
-        if (type == GIF && !url.contains(".gif")) return;
+        if (type == PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg") && !url.startsWith("rp:")) errorMessage = UNKNOWN_FILETYPE;
+        if (type == GIF && !url.contains(".gif")) errorMessage = UNKNOWN_FILETYPE;
         if (PictureSignConfig.safeMode && !url.startsWith("file:") && !url.startsWith("rp:")) {
             isSafeUrl = false;
             String finalUrl = url;
@@ -84,9 +106,10 @@ public class PictureSignRenderer {
                     if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
                 });
             }
-            if (!isSafeUrl) return;
+            if (!isSafeUrl) errorMessage = UNSAFE_URL;
         }
-        if ((!PictureSignConfig.enableMultimediaSigns || !MediaHandler.hasValidImplementation()) && type != PICTURE) return;
+        if ((!PictureSignConfig.enableMultimediaSigns || !MediaHandler.hasValidImplementation()) && type != PICTURE) errorMessage = MISSING_WATERMEDIA;
+
         if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
             url = url.replace("https://www.", "https://");
         }
@@ -97,7 +120,7 @@ public class PictureSignRenderer {
 
         MediaHandler mediaHandler = null;
         GIFHandler gifHandler = null;
-        if (MediaHandler.hasValidImplementation()) {
+        if (errorMessage == null && MediaHandler.hasValidImplementation()) {
             if (type.isVideo || type.isAudio) mediaHandler = MediaHandler.getOrCreate(videoId, pos);
             else if (type == GIF && hasWaterMedia) gifHandler = GIFHandler.getOrCreate(videoId);
             else {
@@ -160,12 +183,13 @@ public class PictureSignRenderer {
 
         // Download the picture data
         PictureDownloader.PictureData data = null;
-        if (type == PICTURE) {
+        if (errorMessage == null && type == PICTURE) {
             data = PictureDownloader.getInstance().getPicture(url);
-            if (data == null || data.identifier == null) return;
+            if (data == null || data.identifier == null) errorMessage = IMAGE_NOT_FOUND;
         }
         else if (mediaHandler != null) {
-            try {
+            if (!mediaHandler.isReady()) errorMessage = MISSING_VLC;
+            else {
                 if (!mediaHandler.hasMedia() && !mediaHandler.playbackStarted) {
                     mediaHandler.play(url, type.isVideo);
                     if (info != null && info.start() > 0) mediaHandler.setTime(info.start());
@@ -173,29 +197,22 @@ public class PictureSignRenderer {
                         mediaHandler.setRepeat(true);
                 }
 
-            } catch (Exception e) {
-                PictureSignClient.LOGGER.error(e);
-                return;
-            }
-            if (info != null && info.volume() >= 0) mediaHandler.setMaxVolume(info.volume());
-            mediaHandler.setVolumeBasedOnDistance();
-            if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start()) mediaHandler.setTime(info.start());
-            if (info != null && info.end() > 0 && mediaHandler.getTime() > info.end()) {
-                if (type.isLooped) mediaHandler.setTime(info.start() > 0 ? info.start() : 0);
-                else mediaHandler.stop();
+                if (info != null && info.volume() >= 0) mediaHandler.setMaxVolume(info.volume());
+                mediaHandler.setVolumeBasedOnDistance();
+                if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start())
+                    mediaHandler.setTime(info.start());
+                if (info != null && info.end() > 0 && mediaHandler.getTime() > info.end()) {
+                    if (type.isLooped) mediaHandler.setTime(info.start() > 0 ? info.start() : 0);
+                    else mediaHandler.stop();
+                }
             }
         }
         else if (type == GIF && gifHandler != null) {
-            try {
-                if (!gifHandler.hasMedia() && !gifHandler.playbackStarted) {
-                    gifHandler.play(url);
-                }
-            } catch (MalformedURLException e) {
-                PictureSignClient.LOGGER.error(e);
-                return;
+            if (!gifHandler.hasMedia() && !gifHandler.playbackStarted) {
+                gifHandler.play(url);
             }
         }
-        else return;
+        else if (errorMessage == null) errorMessage = UNKNOWN_SIGNTYPE;
 
         if (type.isAudio) return;
 
@@ -237,36 +254,29 @@ public class PictureSignRenderer {
         }
         else RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapProgram);
 
-        Identifier texture = null;
-        if (type == PICTURE) {
-            texture = data.identifier;
-        }
-        else if (type.isVideo && mediaHandler != null) {
-            boolean hasVideoTexture = false;
-            if (mediaHandler.isWorking()) {
-                int rawTexture = mediaHandler.getTexture();
-                if (rawTexture != -1) {
-                    RenderSystem.setShaderTexture(0, rawTexture);
-                    hasVideoTexture = true;
+        Identifier texture = getMissingTexture();
+        if (errorMessage == null) {
+            if (type == PICTURE) {
+                assert data != null;
+                texture = data.identifier;
+            } else if (type.isVideo && mediaHandler != null) {
+                if (mediaHandler.isWorking()) {
+                    int rawTexture = mediaHandler.getTexture();
+                    if (rawTexture != -1) {
+                        RenderSystem.setShaderTexture(0, rawTexture);
+                        texture = RAW_TEXTURE;
+                    }
+                }
+            } else if (gifHandler != null) {
+                if (gifHandler.isWorking()) {
+                    RenderSystem.setShaderTexture(0, gifHandler.getTexture());
+                    texture = RAW_TEXTURE;
                 }
             }
-            if (!hasVideoTexture) {
-                var id = MediaHandler.getMissingTexture();
-                if (id == null) return;
-                texture = id;
-            }
         }
-        else if (gifHandler != null) {
-            if (gifHandler.isWorking()) RenderSystem.setShaderTexture(0, gifHandler.getTexture());
-            else {
-                var id = MediaHandler.getMissingTexture();
-                if (id == null) return;
-                texture = id;
-            }
-        }
-        else return;
 
-        if (texture != null) RenderSystem.setShaderTexture(0, texture);
+        if (texture == null) return;
+        if (texture != RAW_TEXTURE) RenderSystem.setShaderTexture(0, texture);
 
         if (PictureSignConfig.translucency) RenderSystem.enableBlend();
         else RenderSystem.disableBlend();
@@ -292,9 +302,32 @@ public class PictureSignRenderer {
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
+        if (errorMessage != null) renderErrorMessage(client.textRenderer, matrixStack, vertices, width, height);
         matrixStack.pop();
         RenderSystem.disableBlend();
 
         RenderSystem.disableDepthTest();
+    }
+    private void renderErrorMessage(TextRenderer textRenderer, MatrixStack matrices, VertexConsumerProvider vertices, float width, float height) {
+        float scale = Math.min(width, height) / 100;
+        matrices.translate(0, height, 1.005f);
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180));
+        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180));
+        matrices.scale(scale,scale,scale);
+        int wrappedY = 0;
+        for(Iterator<OrderedText> textIterator = textRenderer.wrapLines(errorMessage, MathHelper.floor(width/scale)).iterator(); textIterator.hasNext(); wrappedY += 9) {
+            renderTextWithShadow(textIterator.next(), wrappedY, textRenderer, matrices.peek().getPositionMatrix(), vertices);
+        }
+    }
+    private void renderTextWithShadow(OrderedText text, int wrappedY, TextRenderer textRenderer, Matrix4f matrix, VertexConsumerProvider vertices) {
+        textRenderer.draw(text, 0, wrappedY, 0xFFFFFF, false,  matrix, vertices, TextRenderer.TextLayerType.POLYGON_OFFSET, 0, 15728880);
+        matrix.translate(0, 0, 0.025f);
+        textRenderer.draw(text, 1, wrappedY + 1, 0x555555, false,  matrix, vertices, TextRenderer.TextLayerType.POLYGON_OFFSET, 0, 15728880);
+        matrix.translate(0, 0, -0.025f);
+    }
+    public static Identifier getMissingTexture() {
+        if (PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.TRANSPARENT)) return null;
+        return PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.BLACK) ?
+                (id("textures/black.png")) : (TextureManager.MISSING_IDENTIFIER);
     }
 }

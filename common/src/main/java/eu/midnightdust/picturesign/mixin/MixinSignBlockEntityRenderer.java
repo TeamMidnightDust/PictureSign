@@ -4,7 +4,7 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.render.PictureSignRenderer;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import net.minecraft.block.entity.SignBlockEntity;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.SignBlockEntityRenderer;
@@ -18,6 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static eu.midnightdust.picturesign.PictureSignClient.client;
+import static eu.midnightdust.picturesign.util.PictureSignType.isCandidate;
+import static eu.midnightdust.picturesign.util.PictureSignType.isNotOfType;
+import static eu.midnightdust.picturesign.util.PictureSignType.hasPicture;
 
 @Mixin(SignBlockEntityRenderer.class)
 public abstract class MixinSignBlockEntityRenderer implements BlockEntityRenderer<SignBlockEntity> {
@@ -31,13 +34,13 @@ public abstract class MixinSignBlockEntityRenderer implements BlockEntityRendere
     @Inject(at = @At("HEAD"), method = "render")
     public void ps$onRender(SignBlockEntity sign, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, CallbackInfo ci) {
         if (PictureSignConfig.enabled && psRenderer != null) {
-            if (PictureSignType.isNotOfType(sign, PictureSignType.NONE, true)) psRenderer.render(sign, matrixStack, light, overlay, true);
-            if (PictureSignType.isNotOfType(sign, PictureSignType.NONE, false)) psRenderer.render(sign, matrixStack, light, overlay, false);
+            if (isCandidate(sign, true) && isNotOfType(sign, PictureSignType.NONE, true)) psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, true);
+            if (isCandidate(sign, false) && isNotOfType(sign, PictureSignType.NONE, false)) psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, false);
         }
     }
     @Inject(at = @At("HEAD"), method = "shouldRender", cancellable = true)
     private static void shouldRender(BlockPos pos, int signColor, CallbackInfoReturnable<Boolean> cir) {
-        if (PictureSignConfig.enabled && client.world != null && PictureSignType.hasPicture((SignBlockEntity) client.world.getBlockEntity(pos))) cir.setReturnValue(true);
+        if (PictureSignConfig.enabled && client.world != null && hasPicture((SignBlockEntity) client.world.getBlockEntity(pos))) cir.setReturnValue(true);
     }
     @Unique
     @Override
@@ -47,6 +50,6 @@ public abstract class MixinSignBlockEntityRenderer implements BlockEntityRendere
     @Unique
     @Override
     public boolean rendersOutsideBoundingBox(SignBlockEntity sign) {
-        return PictureSignConfig.enabled && PictureSignType.hasPicture(sign);
+        return PictureSignConfig.enabled && hasPicture(sign);
     }
 }

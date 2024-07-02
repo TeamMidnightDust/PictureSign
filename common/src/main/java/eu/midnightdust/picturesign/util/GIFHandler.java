@@ -3,10 +3,8 @@ package eu.midnightdust.picturesign.util;
 import me.srrapero720.watermedia.api.image.ImageAPI;
 import me.srrapero720.watermedia.api.image.ImageCache;
 import me.srrapero720.watermedia.api.math.MathAPI;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
 
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,8 +45,8 @@ public class GIFHandler {
         gifPlayers.clear();
     }
 
-    public void play(String url) throws MalformedURLException {
-        this.player = ImageAPI.getCache(url, MinecraftClient.getInstance());
+    public void play(String url) {
+        this.player = ImageAPI.getCache(url, client);
         player.load();
         this.playbackStarted = true;
     }

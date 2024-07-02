@@ -1,7 +1,6 @@
 package eu.midnightdust.picturesign.util;
 
 import eu.midnightdust.picturesign.config.PictureSignConfig;
-import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -11,8 +10,6 @@ import java.util.Map;
 
 import static eu.midnightdust.picturesign.PictureSignClient.client;
 import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
-import static eu.midnightdust.picturesign.PictureSignClient.id;
-
 
 public abstract class MediaHandler {
     public static Map<Identifier, MediaHandler> mediaHandlers = new HashMap<>();
@@ -88,12 +85,10 @@ public abstract class MediaHandler {
     public int getTexture() {
         return -1;
     }
-    public boolean isWorking() {
+    public boolean isReady() {
         return false;
     }
-    public static Identifier getMissingTexture() {
-        if (PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.TRANSPARENT)) return null;
-        return PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.BLACK) ?
-                (id("textures/black.png")) : (TextureManager.MISSING_IDENTIFIER);
+    public boolean isWorking() {
+        return false;
     }
 }

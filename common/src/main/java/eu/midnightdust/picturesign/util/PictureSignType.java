@@ -4,13 +4,13 @@ import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.text.Text;
 
 public enum PictureSignType {
-    NONE(Text.empty(),                        "", false, false, false),
-    PICTURE(Text.of("Image"),           "!PS:", false, false, false),
-    GIF(Text.of("GIF"),                 "!GS:", true, false, false),
-    VIDEO(Text.of("Video"),             "!VS:", false, true, false),
-    LOOPED_VIDEO(Text.of("Video Loop"), "!LS:", true, true, false),
-    AUDIO(Text.of("Audio"),             "!AS:", false, false, true),
-    LOOPED_AUDIO(Text.of("Audio Loop"), "!ALS:", true, false, true);
+    NONE(Text.empty(),                                                   "", false, false, false),
+    PICTURE(Text.translatable("picturesign.type.image"),           "!PS:", false, false, false),
+    GIF(Text.translatable("picturesign.type.gif"),                 "!GS:", true, false, false),
+    VIDEO(Text.translatable("picturesign.type.video"),             "!VS:", false, true, false),
+    LOOPED_VIDEO(Text.translatable("picturesign.type.video_loop"), "!LS:", true, true, false),
+    AUDIO(Text.translatable("picturesign.type.audio"),             "!AS:", false, false, true),
+    LOOPED_AUDIO(Text.translatable("picturesign.type.audio_loop"), "!ALS:", true, false, true);
 
     public final Text name;
     public final String format;
@@ -50,6 +50,9 @@ public enum PictureSignType {
         };
     }
 
+    public static boolean isCandidate(SignBlockEntity signBlockEntity, boolean front) {
+        return signBlockEntity.getText(front).getMessage(0,false).getString().startsWith("!");
+    }
     public static boolean isNotOfType(SignBlockEntity signBlockEntity, PictureSignType type, boolean front) {
         return getType(signBlockEntity, front) != type;
     }

@@ -22,8 +22,6 @@
 	"picturesign.midnightconfig.safeGifProviders":"Safe GIF Providers",
 	"picturesign.midnightconfig.safeMultimediaProviders":"Safe Multimedia Providers",
 	"picturesign.midnightconfig.safeJsonProviders":"Safe JSON Providers",
-	"picturesign.midnightconfig.invidiousInstance":"Invidious Instance",
-	"picturesign.midnightconfig.invidiousInstance.tooltip":"Select the Invidious instance that is being used to play YouTube videos. \nYou can find a list of them at\ndocs.invidious.io/instances/",
 	"picturesign.midnightconfig.missingImageMode":"Missing image mode",
 	"picturesign.midnightconfig.enum.MissingImageMode.BLACK":"Black",
 	"picturesign.midnightconfig.enum.MissingImageMode.MISSING_TEXTURE":"Black & Purple",
@@ -37,5 +35,32 @@
 	"picturesign.midnightconfig.enum.PictureShader.PosTexCol":"PosTexCol",
 	"key.picturesign.copy_sign":"Copy Text from Sign",
 	"key.picturesign.edit_sign":"Edit Sign",
-	"key.categories.picturesign":"PictureSign"
+	"key.categories.picturesign":"PictureSign",
+
+	"picturesign.type.image": "Image",
+	"picturesign.type.gif": "GIF",
+	"picturesign.type.video": "Video",
+	"picturesign.type.video_loop": "Video Loop",
+	"picturesign.type.audio": "Audio",
+	"picturesign.type.audio_loop": "Audio Loop",
+
+	"picturesign.helper.link": "Link %s",
+	"picturesign.helper.width": "Width",
+	"picturesign.helper.height": "Height",
+	"picturesign.helper.pos_x": "PosX",
+	"picturesign.helper.pos_y": "PosY",
+	"picturesign.helper.pos_z": "PosZ",
+	"picturesign.helper.rot_x": "RotX",
+	"picturesign.helper.rot_y": "RotY",
+	"picturesign.helper.rot_z": "RotZ",
+	"picturesign.helper.mode": "Mode",
+
+	"picturesign.error": "ERROR: ",
+	"picturesign.error.imageNotFound": "The specified image could not be found.\nAre you offline or is the website down?",
+	"picturesign.error.missingVLC": "VLC is not installed or could not be found.",
+	"picturesign.error.missingWatermedia": "Install WATERMeDIA to enjoy GIFs, videos and audios.",
+	"picturesign.error.unknownFiletype": "The filetype of the specified image is not supported by PictureSign.",
+	"picturesign.error.unknownSigntype": "This version of PictureSign does not support signs of the specified type.",
+	"picturesign.error.unsafeJsonUrl": "The provided JSON URL is not known to be safe.\nUpload to a different provider or change the PictureSign config.",
+	"picturesign.error.unsafeUrl": "The provided URL is not known to be safe.\nUpload to a different provider or change the PictureSign config."
 }
