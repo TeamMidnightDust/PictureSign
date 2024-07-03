@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.records.MediaJsonInfo;
 import net.minecraft.block.entity.SignBlockEntity;
 
 import java.io.IOException;
@@ -21,12 +22,12 @@ import java.util.concurrent.TimeUnit;
 
 public class PictureURLUtils {
     public static final Type STRING_TYPE = new TypeToken<Map<String, String>>(){}.getType();
-    public static final Map<String, PictureInfo> cachedJsonData = new HashMap<>();
+    public static final Map<String, MediaJsonInfo> cachedJsonData = new HashMap<>();
     private static final Gson GSON = new GsonBuilder().create();
 
-    public static PictureInfo infoFromJson(String pathToJson) {
+    public static MediaJsonInfo infoFromJson(String pathToJson) {
         if (cachedJsonData.containsKey(pathToJson)) return cachedJsonData.get(pathToJson);
-        PictureInfo result = null;
+        MediaJsonInfo result = null;
         URL json = toURL(pathToJson);
         Map<String, String> jsonData = null;
 
@@ -39,7 +40,7 @@ public class PictureURLUtils {
         }
         if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("JsonData: "+jsonData);
         if (jsonData != null && !jsonData.isEmpty() && jsonData.containsKey("url")) {
-            result = new PictureInfo(jsonData.get("url"), getDurationMillis(jsonData.getOrDefault("start_at", "")),
+            result = new MediaJsonInfo(jsonData.get("url"), getDurationMillis(jsonData.getOrDefault("start_at", "")),
                     getDurationMillis(jsonData.getOrDefault("end_at", "")), Integer.parseInt(jsonData.getOrDefault("volume", "-1")));
             PictureSignClient.LOGGER.info("URL successfully loaded from JSON!");
         } else {

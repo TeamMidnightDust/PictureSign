@@ -6,11 +6,14 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.GIFHandler;
 import eu.midnightdust.picturesign.util.IrisCompat;
 import eu.midnightdust.picturesign.util.MediaHandler;
+import eu.midnightdust.picturesign.util.records.PictureDimensions;
 import eu.midnightdust.picturesign.util.PictureDownloader;
-import eu.midnightdust.picturesign.util.PictureInfo;
+import eu.midnightdust.picturesign.util.records.MediaJsonInfo;
+import eu.midnightdust.picturesign.util.records.PictureOffset;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.BufferBuilder;
@@ -60,18 +63,22 @@ public class PictureSignRenderer {
     public static final Identifier RAW_TEXTURE = id("internal_raw_texture");
 
     public void render(SignBlockEntity signBlockEntity, MatrixStack matrixStack, VertexConsumerProvider vertices, int light, int overlay, boolean front) {
-        errorMessage = null;
+        String lastLine = signBlockEntity.getText(front).getMessage(3, false).getString();
+        if (!lastLine.matches("(.*\\d:.*\\d:.*\\d:.*\\d:.*\\d)")) return;
+
+        PictureDimensions dimensions = getDimensions(signBlockEntity.getText(front).getMessage(2, false).getString(), lastLine);
         PictureSignType type = getType(signBlockEntity, front);
-        String url = PictureURLUtils.getLink(signBlockEntity, front);
-        PictureInfo info = null;
+        render(signBlockEntity, type, PictureURLUtils.getLink(signBlockEntity, front), dimensions, getOffset(signBlockEntity, front, type), front, matrixStack, vertices, light, overlay);
+    }
+
+    public void render(BlockEntity blockEntity, PictureSignType type, String url, PictureDimensions dimensions, PictureOffset offset, boolean front, MatrixStack matrixStack, VertexConsumerProvider vertices, int light, int overlay) {
+        errorMessage = null;
+        MediaJsonInfo info = null;
         if (!url.contains("://") && !url.startsWith("file:") && !url.startsWith("rp:")) {
             url = "https://" + url;
         }
-        isSafeJsonUrl = false;
-        String jsonUrl = url;
-        PictureSignConfig.safeJsonProviders.forEach(safe -> {
-            if (!isSafeJsonUrl) isSafeJsonUrl = jsonUrl.startsWith(safe);
-        });
+        checkJsonUrlSafety(url);
+
         if (url.endsWith(".json") || isSafeJsonUrl) {
             if (PictureSignConfig.safeMode && !isSafeJsonUrl) errorMessage = UNSAFE_JSON_URL;
 
@@ -86,35 +93,16 @@ public class PictureSignRenderer {
             }
         }
 
-        if (type == PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg") && !url.startsWith("rp:")) errorMessage = UNKNOWN_FILETYPE;
-        if (type == GIF && !url.contains(".gif")) errorMessage = UNKNOWN_FILETYPE;
-        if (PictureSignConfig.safeMode && !url.startsWith("file:") && !url.startsWith("rp:")) {
-            isSafeUrl = false;
-            String finalUrl = url;
-            if (type == PICTURE) {
-                PictureSignConfig.safeProviders.forEach(safe -> {
-                    if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
-                });
-            }
-            if (type == GIF) {
-                PictureSignConfig.safeGifProviders.forEach(safe -> {
-                    if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
-                });
-            }
-            else if (type.isVideo || type.isAudio) {
-                PictureSignConfig.safeMultimediaProviders.forEach(safe -> {
-                    if (!isSafeUrl) isSafeUrl = finalUrl.startsWith(safe);
-                });
-            }
-            if (!isSafeUrl) errorMessage = UNSAFE_URL;
-        }
-        if ((!PictureSignConfig.enableMultimediaSigns || !MediaHandler.hasValidImplementation()) && type != PICTURE) errorMessage = MISSING_WATERMEDIA;
+        if ((type == PICTURE && !url.contains(".png") && !url.contains(".jpg") && !url.contains(".jpeg") && !url.startsWith("rp:"))
+                || (type == GIF && !url.contains(".gif"))) errorMessage = UNKNOWN_FILETYPE;
+        if (PictureSignConfig.safeMode && !url.startsWith("file:") && !url.startsWith("rp:") && !isUrlSafe(type, url)) errorMessage = UNSAFE_URL;
+        if (!PictureSignConfig.enableMultimediaSigns && type != PICTURE && type != GIF) return;
+        if (!MediaHandler.hasValidImplementation() && type != PICTURE) errorMessage = MISSING_WATERMEDIA;
 
-        if (url.startsWith("https://youtube.com/") || url.startsWith("https://www.youtube.com/watch?v=") || url.startsWith("https://youtu.be/")) {
+        if (url.startsWith("https://www.youtube.com/watch?v=")) {
             url = url.replace("https://www.", "https://");
         }
-        World world = signBlockEntity.getWorld();
-        BlockPos pos = signBlockEntity.getPos();
+        BlockPos pos = blockEntity.getPos();
         String videoSuffix = front ? "_f" : "_b";
         Identifier videoId = id(pos.getX() + "_" + pos.getY() + "_" + pos.getZ() + videoSuffix);
 
@@ -129,16 +117,10 @@ public class PictureSignRenderer {
             }
         }
 
-        if (world != null && ((world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
-                && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)
-        || (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
-                        && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)))
-        {
-            if (mediaHandler != null && mediaHandler.isWorking() && !mediaHandler.isStopped()) {
-                mediaHandler.stop();
-            }
+        if (isDisabledViaRedstone(blockEntity.getWorld(), pos)) {
+            if (mediaHandler != null && mediaHandler.isWorking() && !mediaHandler.isStopped()) mediaHandler.stop();
 
-            PictureURLUtils.cachedJsonData.remove(url);
+            //PictureURLUtils.cachedJsonData.remove(url);
             return;
         }
         else if (mediaHandler != null && mediaHandler.isDeactivated) {
@@ -146,40 +128,7 @@ public class PictureSignRenderer {
                 mediaHandler.restart();
         }
 
-        String lastLine = signBlockEntity.getText(front).getMessage(3, false).getString();
 
-        if (!lastLine.matches("(.*\\d:.*\\d:.*\\d:.*\\d:.*\\d)")) return;
-
-        String[] scale = lastLine.split(":");
-        float width = 0;
-        float height = 0;
-        float x = 0;
-        float y = 0;
-        float z = 0;
-        try {
-            width = Float.parseFloat(scale[0]);
-            height = Float.parseFloat(scale[1]);
-            x = Float.parseFloat(scale[2]);
-            y = Float.parseFloat(scale[3]);
-            z = Float.parseFloat(scale[4]);
-        }
-        catch (NumberFormatException ignored) {}
-
-        String thirdLine = signBlockEntity.getText(front).getMessage(2, false).getString();
-        boolean hasRotation = thirdLine.matches("(.*\\d:.*\\d:.*\\d)");
-        float xRot = 0;
-        float yRot = 0;
-        float zRot = 0;
-
-        if (hasRotation) {
-            String[] rotation = thirdLine.split(":");
-            try {
-                xRot = Float.parseFloat(rotation[0]);
-                yRot = Float.parseFloat(rotation[1]);
-                zRot = Float.parseFloat(rotation[2]);
-            } catch (NumberFormatException ignored) {
-            }
-        }
 
         // Download the picture data
         PictureDownloader.PictureData data = null;
@@ -214,37 +163,7 @@ public class PictureSignRenderer {
         }
         else if (errorMessage == null) errorMessage = UNKNOWN_SIGNTYPE;
 
-        if (type.isAudio) return;
-
-        float xOffset = 0.0F;
-        float zOffset = 0.0F;
-
-        float yRotation = 0;
-
-        if (signBlockEntity.getCachedState().contains(Properties.HORIZONTAL_FACING)) {
-            Direction direction = signBlockEntity.getCachedState().get(Properties.HORIZONTAL_FACING);
-            switch (direction) {
-                case NORTH -> {
-                    zOffset = 1.01F;
-                    xOffset = 1.0F;
-                    yRotation = 180;
-                }
-                case SOUTH -> zOffset = 0.010F;
-                case EAST -> {
-                    zOffset = 1.01F;
-                    yRotation = 90;
-                }
-                case WEST -> {
-                    yRotation = -90;
-                    xOffset = 1.01F;
-                }
-            }
-        }
-        else if (signBlockEntity.getCachedState().contains(Properties.ROTATION)) {
-            yRotation = signBlockEntity.getCachedState().get(Properties.ROTATION) * -22.5f;
-        }
-        else return;
-        if (!front) yRotation -= 180f;
+        if (type.isAudio || offset == null) return;
 
         Tessellator tessellator = Tessellator.getInstance();
 
@@ -284,28 +203,27 @@ public class PictureSignRenderer {
         RenderSystem.depthMask(true);
 
         matrixStack.push();
-        matrixStack.translate(xOffset + x, y, zOffset + z);
-        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yRotation + yRot));
-        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(xRot));
-        matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(zRot));
+        matrixStack.translate(offset.xOffset() + dimensions.x(), dimensions.y(), offset.zOffset() + dimensions.z());
+        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(offset.yRotation() + dimensions.yRot()));
+        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(dimensions.xRot()));
+        matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(dimensions.zRot()));
 
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT);
 
-        buffer.vertex(matrix4f, width, 0.0F, 1.0F).color(255, 255, 255, 255).texture(1.0F, 1.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, dimensions.width(), 0.0F, 1.0F).color(255, 255, 255, 255).texture(1.0F, 1.0F).light(l).overlay(overlay);
 
-        buffer.vertex(matrix4f, width, height, 1.0F).color(255, 255, 255, 255).texture(1.0F, 0.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, dimensions.width(), dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(1.0F, 0.0F).light(l).overlay(overlay);
 
-        buffer.vertex(matrix4f, 0.0F, height, 1.0F).color(255, 255, 255, 255).texture(0.0F, 0.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, 0.0F, dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(0.0F, 0.0F).light(l).overlay(overlay);
 
         buffer.vertex(matrix4f, 0.0F, 0.0F, 1.0F).color(255, 255, 255, 255).texture(0.0F, 1.0F).light(l).overlay(overlay);
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
-        if (errorMessage != null) renderErrorMessage(client.textRenderer, matrixStack, vertices, width, height);
+        if (errorMessage != null) renderErrorMessage(client.textRenderer, matrixStack, vertices, dimensions.width(), dimensions.height());
         matrixStack.pop();
         RenderSystem.disableBlend();
-
         RenderSystem.disableDepthTest();
     }
     private void renderErrorMessage(TextRenderer textRenderer, MatrixStack matrices, VertexConsumerProvider vertices, float width, float height) {
@@ -329,5 +247,100 @@ public class PictureSignRenderer {
         if (PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.TRANSPARENT)) return null;
         return PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.BLACK) ?
                 (id("textures/black.png")) : (TextureManager.MISSING_IDENTIFIER);
+    }
+    public void checkJsonUrlSafety(String jsonUrl) {
+        isSafeJsonUrl = false;
+        PictureSignConfig.safeJsonProviders.forEach(safe -> {
+            if (!isSafeJsonUrl) isSafeJsonUrl = jsonUrl.startsWith(safe);
+        });
+    }
+    public boolean isUrlSafe(PictureSignType type, String url) {
+        isSafeUrl = false;
+        if (type == PICTURE) {
+            PictureSignConfig.safeProviders.forEach(safe -> {
+                if (!isSafeUrl) isSafeUrl = url.startsWith(safe);
+            });
+        }
+        else if (type == GIF) {
+            PictureSignConfig.safeGifProviders.forEach(safe -> {
+                if (!isSafeUrl) isSafeUrl = url.startsWith(safe);
+            });
+        }
+        else if (type.isVideo || type.isAudio) {
+            PictureSignConfig.safeMultimediaProviders.forEach(safe -> {
+                if (!isSafeUrl) isSafeUrl = url.startsWith(safe);
+            });
+        }
+        return isSafeUrl;
+    }
+    public boolean isDisabledViaRedstone(World world, BlockPos pos) {
+        return  (world != null && ((world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
+                && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)
+                || (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
+                && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)));
+    }
+    public PictureDimensions getDimensions(String thirdLine, String forthLine) {
+        String[] scale = forthLine.split(":");
+        float width = 0;
+        float height = 0;
+        float x = 0;
+        float y = 0;
+        float z = 0;
+        try {
+            width = Float.parseFloat(scale[0]);
+            height = Float.parseFloat(scale[1]);
+            x = Float.parseFloat(scale[2]);
+            y = Float.parseFloat(scale[3]);
+            z = Float.parseFloat(scale[4]);
+        }
+        catch (NumberFormatException ignored) {}
+
+        boolean hasRotation = thirdLine.matches("(.*\\d:.*\\d:.*\\d)");
+        float xRot = 0;
+        float yRot = 0;
+        float zRot = 0;
+
+        if (hasRotation) {
+            String[] rotation = thirdLine.split(":");
+            try {
+                xRot = Float.parseFloat(rotation[0]);
+                yRot = Float.parseFloat(rotation[1]);
+                zRot = Float.parseFloat(rotation[2]);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return new PictureDimensions(width, height, x, y, z, xRot, yRot, zRot);
+    }
+    public PictureOffset getOffset(BlockEntity blockEntity, boolean front, PictureSignType type) {
+        if (type.isAudio) return null;
+        float xOffset = 0.0F;
+        float zOffset = 0.0F;
+        float yRotation = 0;
+
+        if (blockEntity.getCachedState().contains(Properties.HORIZONTAL_FACING)) {
+            Direction direction = blockEntity.getCachedState().get(Properties.HORIZONTAL_FACING);
+            switch (direction) {
+                case NORTH -> {
+                    zOffset = 1.01F;
+                    xOffset = 1.0F;
+                    yRotation = 180;
+                }
+                case SOUTH -> zOffset = 0.010F;
+                case EAST -> {
+                    zOffset = 1.01F;
+                    yRotation = 90;
+                }
+                case WEST -> {
+                    yRotation = -90;
+                    xOffset = 1.01F;
+                }
+            }
+        }
+        else if (blockEntity.getCachedState().contains(Properties.ROTATION)) {
+            yRotation = blockEntity.getCachedState().get(Properties.ROTATION) * -22.5f;
+        }
+        else return null;
+        if (!front) yRotation -= 180f;
+        return new PictureOffset(xOffset, zOffset, yRotation);
     }
 }

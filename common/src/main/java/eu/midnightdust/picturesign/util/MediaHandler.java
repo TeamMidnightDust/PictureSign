@@ -53,7 +53,7 @@ public abstract class MediaHandler {
     public void closePlayer() {}
 
     public static void closePlayer(Identifier videoId) {
-        if (mediaHandlers.containsKey(videoId)) mediaHandlers.get(videoId).closePlayer();
+        if (mediaHandlers.get(videoId) instanceof MediaHandler mediaHandler) mediaHandler.closePlayer();
     }
     public static void closeAll() {
         mediaHandlers.forEach(((id, player) -> player.closePlayer()));
