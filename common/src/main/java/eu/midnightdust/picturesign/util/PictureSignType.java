@@ -27,6 +27,7 @@ public enum PictureSignType {
     }
 
     public static PictureSignType getType(SignBlockEntity signBlockEntity, boolean front) {
+        if (signBlockEntity == null) return PictureSignType.NONE;
         return getType(signBlockEntity.getText(front).getMessage(0,false).getString());
     }
     public static PictureSignType getType(String lineOne) {
