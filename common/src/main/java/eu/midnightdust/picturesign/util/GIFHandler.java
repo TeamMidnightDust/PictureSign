@@ -55,7 +55,7 @@ public class GIFHandler {
     }
     public int getTexture() {
         return player.getRenderer().texture(tick,
-                (MathAPI.tickToMs(client.getRenderTickCounter().getTickDelta(true))), true);
+                (MathAPI.tickToMs(client.getTickDelta())), true);
     }
     public boolean isWorking() {
         if (player != null && player.getException() != null) player.getException().fillInStackTrace();

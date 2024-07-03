@@ -21,7 +21,6 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.TextIconButtonWidget;
 import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.TexturedRenderLayers;
@@ -385,7 +384,7 @@ public class PictureSignHelperScreen extends Screen {
         else {
             MatrixStack matrices = context.getMatrices();
             matrices.scale(4.5F, 4.5F, 1.0F);
-            context.drawTexture(Identifier.ofVanilla("textures/gui/hanging_signs/" + this.signType.name() + ".png"), -8, -8, 0.0F, 0.0F, 16, 16, 16, 16);
+            context.drawTexture(new Identifier("textures/gui/hanging_signs/" + this.signType.name() + ".png"), -8, -8, 0.0F, 0.0F, 16, 16, 16, 16);
         }
     }
 

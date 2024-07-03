@@ -23,6 +23,6 @@ public class PictureSignClient {
         PictureSignConfig.init(MOD_ID, PictureSignConfig.class);
     }
     public static Identifier id(String path) {
-        return Identifier.of(MOD_ID, path);
+        return new Identifier(MOD_ID, path);
     }
 }

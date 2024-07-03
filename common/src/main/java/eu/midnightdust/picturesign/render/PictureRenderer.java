@@ -192,15 +192,16 @@ public class PictureRenderer {
         matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(dimensions.zRot()));
 
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT);
+        BufferBuilder buffer = tessellator.getBuffer();
+        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT);
 
-        buffer.vertex(matrix4f, dimensions.width(), 0.0F, 1.0F).color(255, 255, 255, 255).texture(1.0F, 1.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, dimensions.width(), 0.0F, 1.0F).color(255, 255, 255, 255).texture(1.0F, 1.0F).light(l).overlay(overlay).next();
 
-        buffer.vertex(matrix4f, dimensions.width(), dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(1.0F, 0.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, dimensions.width(), dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(1.0F, 0.0F).light(l).overlay(overlay).next();
 
-        buffer.vertex(matrix4f, 0.0F, dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(0.0F, 0.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, 0.0F, dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(0.0F, 0.0F).light(l).overlay(overlay).next();
 
-        buffer.vertex(matrix4f, 0.0F, 0.0F, 1.0F).color(255, 255, 255, 255).texture(0.0F, 1.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, 0.0F, 0.0F, 1.0F).color(255, 255, 255, 255).texture(0.0F, 1.0F).light(l).overlay(overlay).next();
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
