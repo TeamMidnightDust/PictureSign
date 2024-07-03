@@ -314,7 +314,7 @@ public class PictureSignHelperScreen extends Screen {
         MatrixStack matrices = context.getMatrices();
         matrices.push();
         VertexConsumerProvider.Immediate immediate = this.client.getBufferBuilders().getEntityVertexConsumers();
-        translateForRender(context, sign.getCachedState());
+        translateForRender(context);
         renderSignBackground(context, sign.getCachedState());
 
         int i = this.sign.getText(front).getColor().getSignColor();
@@ -347,7 +347,7 @@ public class PictureSignHelperScreen extends Screen {
         matrices.pop();
         DiffuseLighting.enableGuiDepthLighting();
     }
-    protected void translateForRender(DrawContext context, BlockState state) {
+    protected void translateForRender(DrawContext context) {
         MatrixStack matrices = context.getMatrices();
         if (isHanging) {
             matrices.translate((float)this.width / 2.0F + 100, this.height / 5f + 50, 50.0F);
@@ -361,19 +361,18 @@ public class PictureSignHelperScreen extends Screen {
     }
 
     protected void renderSignBackground(DrawContext context, BlockState state) {
-        if (!isHanging) {
+        if (!isHanging && this.client != null) {
             VertexConsumerProvider.Immediate immediate = this.client.getBufferBuilders().getEntityVertexConsumers();
             MatrixStack matrices = context.getMatrices();
 
-            BlockState blockState = this.sign.getCachedState();
-            boolean bl = blockState.getBlock() instanceof SignBlock;
+            boolean bl = state.getBlock() instanceof SignBlock;
             if (!bl) {
                 matrices.translate(0.0, -0.15625, 0.0);
             }
             matrices.push();
             matrices.scale(0.6666667F, -0.6666667F, -0.6666667F);
 
-            SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getSignTextureId(AbstractSignBlock.getWoodType(sign.getCachedState().getBlock()));
+            SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getSignTextureId(AbstractSignBlock.getWoodType(state.getBlock()));
             SignBlockEntityRenderer.SignModel var10002 = this.model;
             Objects.requireNonNull(var10002);
             VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(immediate, var10002::getLayer);

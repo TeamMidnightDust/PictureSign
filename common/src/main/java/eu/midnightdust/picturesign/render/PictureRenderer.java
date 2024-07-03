@@ -22,7 +22,6 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.OrderedText;
@@ -32,6 +31,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
@@ -42,12 +42,12 @@ import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
 import static eu.midnightdust.picturesign.util.PictureSignType.GIF;
 import static eu.midnightdust.picturesign.util.PictureSignType.PICTURE;
+import static net.minecraft.client.texture.TextureManager.MISSING_IDENTIFIER;
 
 public class PictureRenderer {
     private boolean isSafeUrl;
     private boolean isSafeJsonUrl;
 
-    @Nullable private Text errorMessage;
     public static final Text ERROR = Text.translatable("picturesign.error");
     public static final Text MISSING_VLC = ERROR.copy().append(Text.translatable("picturesign.error.missingVLC"));
     public static final Text MISSING_WATERMEDIA = ERROR.copy().append(Text.translatable("picturesign.error.missingWatermedia"));
@@ -60,7 +60,7 @@ public class PictureRenderer {
     public static final Identifier RAW_TEXTURE = id("internal_raw_texture");
 
     public void render(BlockEntity blockEntity, PictureSignType type, String url, PictureDimensions dimensions, PictureOffset offset, boolean front, MatrixStack matrixStack, VertexConsumerProvider vertices, int light, int overlay) {
-        errorMessage = null;
+        Text errorMessage = null;
         MediaJsonInfo info = null;
         if (!url.contains("://") && !url.startsWith("file:") && !url.startsWith("rp:")) {
             url = "https://" + url;
@@ -123,7 +123,7 @@ public class PictureRenderer {
         else if (mediaHandler != null) {
             if (!mediaHandler.isReady()) errorMessage = MISSING_VLC;
             else {
-                if (!mediaHandler.hasMedia() && !mediaHandler.playbackStarted) {
+                if (!mediaHandler.playbackStarted && !mediaHandler.hasMedia()) {
                     mediaHandler.play(url, type.isVideo);
                     if (info != null && info.start() > 0) mediaHandler.setTime(info.start());
                     if (type.isLooped && !mediaHandler.hasMedia() && !mediaHandler.playbackStarted)
@@ -204,32 +204,35 @@ public class PictureRenderer {
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
-        if (errorMessage != null) renderErrorMessage(client.textRenderer, matrixStack, vertices, dimensions.width(), dimensions.height());
+        if (errorMessage != null) renderErrorMessage(errorMessage, client.textRenderer, matrixStack, vertices, dimensions.width(), dimensions.height());
         matrixStack.pop();
         RenderSystem.disableBlend();
         RenderSystem.disableDepthTest();
     }
-    private void renderErrorMessage(TextRenderer textRenderer, MatrixStack matrices, VertexConsumerProvider vertices, float width, float height) {
+    private static void renderErrorMessage(Text error, @NotNull TextRenderer textRenderer, @NotNull MatrixStack matrices, VertexConsumerProvider vertices, float width, float height) {
         float scale = Math.min(width, height) / 100;
         matrices.translate(0, height, 1.005f);
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180));
         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180));
         matrices.scale(scale,scale,scale);
         int wrappedY = 0;
-        for(Iterator<OrderedText> textIterator = textRenderer.wrapLines(errorMessage, MathHelper.floor(width/scale)).iterator(); textIterator.hasNext(); wrappedY += 9) {
+        for(Iterator<OrderedText> textIterator = textRenderer.wrapLines(error, MathHelper.floor(width/scale)).iterator(); textIterator.hasNext(); wrappedY += 9) {
             renderTextWithShadow(textIterator.next(), wrappedY, textRenderer, matrices.peek().getPositionMatrix(), vertices);
         }
     }
-    private void renderTextWithShadow(OrderedText text, int wrappedY, TextRenderer textRenderer, Matrix4f matrix, VertexConsumerProvider vertices) {
+    private static void renderTextWithShadow(OrderedText text, int wrappedY, @NotNull TextRenderer textRenderer, Matrix4f matrix, VertexConsumerProvider vertices) {
         textRenderer.draw(text, 0, wrappedY, 0xFFFFFF, false,  matrix, vertices, TextRenderer.TextLayerType.POLYGON_OFFSET, 0, 15728880);
         matrix.translate(0, 0, 0.025f);
         textRenderer.draw(text, 1, wrappedY + 1, 0x555555, false,  matrix, vertices, TextRenderer.TextLayerType.POLYGON_OFFSET, 0, 15728880);
         matrix.translate(0, 0, -0.025f);
     }
-    public static Identifier getMissingTexture() {
-        if (PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.TRANSPARENT)) return null;
-        return PictureSignConfig.missingImageMode.equals(PictureSignConfig.MissingImageMode.BLACK) ?
-                (id("textures/black.png")) : (TextureManager.MISSING_IDENTIFIER);
+    private static final Identifier BLACK_TEXTURE = id("textures/black.png");
+    public @Nullable Identifier getMissingTexture() {
+        return switch (PictureSignConfig.missingImageMode) {
+            case BLACK -> BLACK_TEXTURE;
+            case MISSING_TEXTURE -> MISSING_IDENTIFIER;
+            default -> null;
+        };
     }
     public void checkJsonUrlSafety(String jsonUrl) {
         isSafeJsonUrl = false;

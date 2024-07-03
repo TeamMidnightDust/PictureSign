@@ -22,7 +22,7 @@ public class PictureSignRenderer extends PictureRenderer {
         PictureSignType type = getType(signBlockEntity, front);
         super.render(signBlockEntity, type, PictureURLUtils.getLink(signBlockEntity, front), dimensions, getOffset(signBlockEntity, front, type), front, matrixStack, vertices, light, overlay);
     }
-    private PictureDimensions getDimensions(String thirdLine, String forthLine) {
+    private static PictureDimensions getDimensions(String thirdLine, String forthLine) {
         String[] scale = forthLine.split(":");
         float width = 0;
         float height = 0;
@@ -54,7 +54,7 @@ public class PictureSignRenderer extends PictureRenderer {
         }
         return new PictureDimensions(width, height, x, y, z, xRot, yRot, zRot);
     }
-    private PictureOffset getOffset(BlockEntity blockEntity, boolean front, PictureSignType type) {
+    private static PictureOffset getOffset(BlockEntity blockEntity, boolean front, PictureSignType type) {
         if (type.isAudio) return null;
         float xOffset = 0.0F;
         float zOffset = 0.0F;
