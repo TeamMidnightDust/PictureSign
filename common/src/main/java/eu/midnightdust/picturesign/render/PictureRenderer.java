@@ -12,7 +12,7 @@ import eu.midnightdust.picturesign.util.PictureURLUtils;
 import eu.midnightdust.picturesign.util.records.MediaJsonInfo;
 import eu.midnightdust.picturesign.util.records.PictureDimensions;
 import eu.midnightdust.picturesign.util.records.PictureOffset;
-import net.minecraft.block.Blocks;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.BufferBuilder;
@@ -115,8 +115,6 @@ public class PictureRenderer {
             if (mediaHandler.isWorking() && mediaHandler.isStopped())
                 mediaHandler.restart();
         }
-        
-        // Download the picture data
         PictureDownloader.PictureData data = null;
         if (errorMessage == null && type == PICTURE) {
             data = PictureDownloader.getInstance().getPicture(url);
@@ -154,9 +152,8 @@ public class PictureRenderer {
         Tessellator tessellator = Tessellator.getInstance();
 
         int l = PictureSignConfig.fullBrightPicture ? 15728880 : light;
-        if (PlatformFunctions.isModLoaded("iris") && IrisCompat.isShaderPackInUse()) {
+        if (PlatformFunctions.isModLoaded("iris") && IrisCompat.isShaderPackInUse())
             RenderSystem.setShader(PictureSignConfig.pictureShader.program);
-        }
         else RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapProgram);
 
         Identifier texture = getMissingTexture();
@@ -260,9 +257,15 @@ public class PictureRenderer {
         return isSafeUrl;
     }
     public boolean isDisabledViaRedstone(World world, BlockPos pos) {
-        return  (world != null && ((world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.down()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
-                && world.getBlockState(pos.down()).get(Properties.LIT).equals(false)
-                || (world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_TORCH) || world.getBlockState(pos.up()).getBlock().equals(Blocks.REDSTONE_WALL_TORCH))
-                && world.getBlockState(pos.up()).get(Properties.LIT).equals(false)));
+        if (world == null) return false;
+
+        BlockState down = world.getBlockState(pos.down());
+        if (down.contains(Properties.LIT)) return down.get(Properties.LIT).equals(false);
+        else {
+            BlockState up = world.getBlockState(pos.up());
+            if (up.contains(Properties.LIT)) return up.get(Properties.LIT).equals(false);
+        }
+
+        return false;
     }
 }
