@@ -3,6 +3,7 @@ package eu.midnightdust.picturesign.util;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public abstract class MediaHandler {
             return;
         }
         double distance = this.pos.getSquaredDistance(playerPos) / PictureSignConfig.audioDistanceMultiplier;
-        setVolume((int) Math.clamp(maxVolume-distance, 0, 100));
+        setVolume((int) MathHelper.clamp(maxVolume-distance, 0, 100));
     }
     void setVolume(int volume) {}
     public void setMaxVolume(int volume) {
@@ -53,7 +54,8 @@ public abstract class MediaHandler {
     public void closePlayer() {}
 
     public static void closePlayer(Identifier videoId) {
-        if (mediaHandlers.get(videoId) instanceof MediaHandler mediaHandler) mediaHandler.closePlayer();
+        MediaHandler mediaHandler = mediaHandlers.getOrDefault(videoId, null);
+        if (mediaHandler != null) mediaHandler.closePlayer();
     }
     public static void closeAll() {
         mediaHandlers.forEach(((id, player) -> player.closePlayer()));
