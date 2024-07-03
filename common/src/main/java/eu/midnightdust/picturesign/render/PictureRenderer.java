@@ -259,12 +259,8 @@ public class PictureRenderer {
     public boolean isDisabledViaRedstone(World world, BlockPos pos) {
         if (world == null) return false;
 
-        BlockState down = world.getBlockState(pos.down());
-        if (down.contains(Properties.LIT)) return down.get(Properties.LIT).equals(false);
-        else {
-            BlockState up = world.getBlockState(pos.up());
-            if (up.contains(Properties.LIT)) return up.get(Properties.LIT).equals(false);
-        }
+        BlockState state = world.getBlockState(pos.down()).contains(Properties.LIT) ? world.getBlockState(pos.down()) : world.getBlockState(pos.up());
+        if (state.contains(Properties.LIT)) return state.get(Properties.LIT).equals(false);
 
         return false;
     }
