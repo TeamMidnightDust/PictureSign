@@ -38,7 +38,6 @@ import org.joml.Matrix4f;
 import java.util.Iterator;
 
 import static eu.midnightdust.picturesign.PictureSignClient.client;
-import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
 import static eu.midnightdust.picturesign.util.PictureSignType.GIF;
 import static eu.midnightdust.picturesign.util.PictureSignType.PICTURE;
@@ -96,9 +95,9 @@ public class PictureRenderer {
 
         MediaHandler mediaHandler = null;
         GIFHandler gifHandler = null;
-        if (errorMessage == null && MediaHandler.hasValidImplementation()) {
-            if (type.isVideo || type.isAudio) mediaHandler = MediaHandler.getOrCreate(videoId, pos);
-            else if (type == GIF && hasWaterMedia) gifHandler = GIFHandler.getOrCreate(videoId);
+        if (errorMessage == null) {
+            if ((type.isVideo || type.isAudio) && MediaHandler.hasValidImplementation()) mediaHandler = MediaHandler.getOrCreate(videoId, pos);
+            else if (type == GIF && GIFHandler.hasValidImplementation()) gifHandler = GIFHandler.getOrCreate(videoId);
             else {
                 MediaHandler.closePlayer(videoId);
                 GIFHandler.closePlayer(videoId);
@@ -107,8 +106,6 @@ public class PictureRenderer {
 
         if (isDisabledViaRedstone(blockEntity.getWorld(), pos)) {
             if (mediaHandler != null && mediaHandler.isWorking() && !mediaHandler.isStopped()) mediaHandler.stop();
-
-            //PictureURLUtils.cachedJsonData.remove(url);
             return;
         }
         else if (mediaHandler != null && mediaHandler.isDeactivated) {
@@ -126,8 +123,7 @@ public class PictureRenderer {
                 if (!mediaHandler.playbackStarted && !mediaHandler.hasMedia()) {
                     mediaHandler.play(url, type.isVideo);
                     if (info != null && info.start() > 0) mediaHandler.setTime(info.start());
-                    if (type.isLooped && !mediaHandler.hasMedia() && !mediaHandler.playbackStarted)
-                        mediaHandler.setRepeat(true);
+                    mediaHandler.setRepeat(type.isLooped);
                 }
 
                 if (info != null && info.volume() >= 0) mediaHandler.setMaxVolume(info.volume());

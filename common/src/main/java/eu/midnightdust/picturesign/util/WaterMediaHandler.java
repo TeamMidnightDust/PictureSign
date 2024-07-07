@@ -15,12 +15,12 @@ import static eu.midnightdust.picturesign.PictureSignClient.client;
 public class WaterMediaHandler extends MediaHandler {
     private SyncBasePlayer player;
 
-    WaterMediaHandler(Identifier id, BlockPos pos) {
+    public WaterMediaHandler(Identifier id, BlockPos pos) {
         super(id, pos);
         mediaHandlers.put(id, this);
     }
     @Override
-    void setVolume(int volume) {
+    public void setVolume(int volume) {
         player.setVolume((int) (volume * MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER)));
     }
 
@@ -36,7 +36,7 @@ public class WaterMediaHandler extends MediaHandler {
     @Override
     public void stop() {
         player.stop();
-        isDeactivated = true;
+        super.stop();
     }
     @Override
     public boolean isStopped() {

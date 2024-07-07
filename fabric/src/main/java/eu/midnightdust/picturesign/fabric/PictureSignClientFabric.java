@@ -36,7 +36,7 @@ public class PictureSignClientFabric implements ClientModInitializer {
             }
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            GIFHandler.gifPlayers.forEach(((identifier, handler) -> handler.tick()));
+            GIFHandler.gifHandlers.forEach(((identifier, handler) -> handler.tick()));
             if (!BINDING_COPY_SIGN.isPressed()) return;
             BINDING_COPY_SIGN.setPressed(false);
             if (client.player == null || client.world == null || client.crosshairTarget == null || client.crosshairTarget.getType() != HitResult.Type.BLOCK) return;

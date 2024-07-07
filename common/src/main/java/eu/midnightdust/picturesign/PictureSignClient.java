@@ -2,6 +2,10 @@ package eu.midnightdust.picturesign;
 
 import eu.midnightdust.lib.util.PlatformFunctions;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
+import eu.midnightdust.picturesign.util.GIFHandler;
+import eu.midnightdust.picturesign.util.MediaHandler;
+import eu.midnightdust.picturesign.util.WaterGIFHandler;
+import eu.midnightdust.picturesign.util.WaterMediaHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -21,6 +25,10 @@ public class PictureSignClient {
 
     public static void init() {
         PictureSignConfig.init(MOD_ID, PictureSignConfig.class);
+        if (hasWaterMedia) {
+            MediaHandler.registerHandler(WaterMediaHandler::new);
+            GIFHandler.registerHandler(WaterGIFHandler::new);
+        }
     }
     public static Identifier id(String path) {
         return Identifier.of(MOD_ID, path);

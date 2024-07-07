@@ -4,14 +4,19 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.ApiStatus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 
 import static eu.midnightdust.picturesign.PictureSignClient.client;
-import static eu.midnightdust.picturesign.PictureSignClient.hasWaterMedia;
 
 public abstract class MediaHandler {
+    private static final List<BiFunction<Identifier, BlockPos, MediaHandler>> implementations = new ArrayList<>();
     public static Map<Identifier, MediaHandler> mediaHandlers = new HashMap<>();
 
     public final Identifier id;
@@ -20,19 +25,23 @@ public abstract class MediaHandler {
     public boolean isDeactivated;
     int maxVolume = 100;
 
-    MediaHandler(Identifier id, BlockPos pos) {
+    public MediaHandler(Identifier id, BlockPos pos) {
         this.id = id;
         this.pos = pos;
     }
+    public static void registerHandler(BiFunction<Identifier, BlockPos, MediaHandler> handler) {
+        implementations.add(handler);
+    }
+    public static boolean hasValidImplementation() {
+        return !implementations.isEmpty();
+    }
     public static MediaHandler getOrCreate(Identifier id, BlockPos pos) {
         if (mediaHandlers.containsKey(id)) return mediaHandlers.get(id);
-        else if (hasWaterMedia) return new WaterMediaHandler(id, pos);
-        // Add new implementations here via Mixin
-        else return null;
-    }
-    public static boolean hasValidImplementation() { // Mixin here to add new Multimedia implementations
-        if (hasWaterMedia) return true;
-        else return false;
+        AtomicReference<MediaHandler> handler = new AtomicReference<>();
+        implementations.forEach(impl -> {
+            handler.set(impl.apply(id, pos));
+        });
+        return handler.get();
     }
     public void setVolumeBasedOnDistance() {
         if (!isWorking() || client.player == null) return;
@@ -45,7 +54,9 @@ public abstract class MediaHandler {
         double distance = this.pos.getSquaredDistance(playerPos) / PictureSignConfig.audioDistanceMultiplier;
         setVolume((int) Math.clamp(maxVolume-distance, 0, 100));
     }
-    void setVolume(int volume) {}
+    @ApiStatus.Internal
+    public void setVolume(int volume) {} // Please use 'setMaxVolume' to adjust the playback volume
+
     public void setMaxVolume(int volume) {
         maxVolume = volume;
     }

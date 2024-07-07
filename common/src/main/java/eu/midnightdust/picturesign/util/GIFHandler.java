@@ -1,64 +1,63 @@
 package eu.midnightdust.picturesign.util;
 
-import me.srrapero720.watermedia.api.image.ImageAPI;
-import me.srrapero720.watermedia.api.image.ImageCache;
-import me.srrapero720.watermedia.api.math.MathAPI;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import static eu.midnightdust.picturesign.PictureSignClient.client;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class GIFHandler {
-    public static Map<Identifier, GIFHandler> gifPlayers = new HashMap<>();
+    private static final List<Function<Identifier, GIFHandler>> implementations = new ArrayList<>();
+    public static Map<Identifier, GIFHandler> gifHandlers = new HashMap<>();
 
     public final Identifier id;
     public boolean playbackStarted;
-    private ImageCache player;
-    private long tick = 0L;
 
-    private GIFHandler(Identifier id) {
-        System.out.println("New GIF handler :" + id);
+    public GIFHandler(Identifier id) {
         this.id = id;
-        gifPlayers.put(id, this);
+        gifHandlers.put(id, this);
+    }
+    public static void registerHandler(Function<Identifier, GIFHandler> handler) {
+        implementations.add(handler);
+    }
+    public static boolean hasValidImplementation() {
+        return !implementations.isEmpty();
     }
     public static GIFHandler getOrCreate(Identifier id) {
-        if (gifPlayers.containsKey(id)) return gifPlayers.get(id);
-        else return new GIFHandler(id);
+        if (gifHandlers.containsKey(id)) return gifHandlers.get(id);
+        AtomicReference<GIFHandler> handler = new AtomicReference<>();
+        implementations.forEach(impl -> {
+            handler.set(impl.apply(id));
+        });
+        return handler.get();
     }
     public void tick() {
-        if (player != null && player.getRenderer() != null && tick < player.getRenderer().duration) tick += 1;
-        else tick = 0;
     }
 
     public void closePlayer() {
-        player.release();
-        player = null;
-        gifPlayers.remove(this.id);
+        gifHandlers.remove(this.id);
     }
     public static void closePlayer(Identifier videoId) {
-        if (gifPlayers.containsKey(videoId)) gifPlayers.get(videoId).closePlayer();
+        if (gifHandlers.containsKey(videoId)) gifHandlers.get(videoId).closePlayer();
     }
     public static void closeAll() {
-        gifPlayers.forEach((id, handler) -> handler.closePlayer());
-        gifPlayers.clear();
+        gifHandlers.forEach((id, handler) -> handler.closePlayer());
+        gifHandlers.clear();
     }
 
     public void play(String url) {
-        this.player = ImageAPI.getCache(url, client);
-        player.load();
         this.playbackStarted = true;
     }
     public boolean hasMedia() {
-        return player != null && player.getStatus() == ImageCache.Status.READY;
+        return false;
     }
     public int getTexture() {
-        return player.getRenderer().texture(tick,
-                (MathAPI.tickToMs(client.getRenderTickCounter().getTickDelta(true))), true);
+        return -1;
     }
     public boolean isWorking() {
-        if (player != null && player.getException() != null) player.getException().fillInStackTrace();
-        return player != null && player.getStatus() == ImageCache.Status.READY && player.getRenderer() != null;
+        return false;
     }
 }
