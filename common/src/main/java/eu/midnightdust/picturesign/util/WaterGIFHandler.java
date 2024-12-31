@@ -1,15 +1,17 @@
 package eu.midnightdust.picturesign.util;
 
-import me.srrapero720.watermedia.api.image.ImageAPI;
-import me.srrapero720.watermedia.api.image.ImageCache;
-import me.srrapero720.watermedia.api.math.MathAPI;
 import net.minecraft.util.Identifier;
+import org.watermedia.api.image.ImageAPI;
+import org.watermedia.api.image.ImageCache;
+import org.watermedia.api.math.MathAPI;
+
+import java.net.URI;
 
 import static eu.midnightdust.picturesign.PictureSignClient.client;
 
 public class WaterGIFHandler extends GIFHandler {
     private ImageCache player;
-    private long tick = 0L;
+    private int tick = 0;
 
     public WaterGIFHandler(Identifier id) {
         super(id);
@@ -29,7 +31,7 @@ public class WaterGIFHandler extends GIFHandler {
 
     @Override
     public void play(String url) {
-        this.player = ImageAPI.getCache(url, client);
+        this.player = ImageAPI.getCache(URI.create(url), client);
         player.load();
         super.play(url);
     }

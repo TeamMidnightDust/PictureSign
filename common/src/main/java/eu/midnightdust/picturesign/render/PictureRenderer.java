@@ -159,6 +159,7 @@ public class PictureRenderer {
                 texture = data.identifier;
             } else if (type.isVideo && mediaHandler != null) {
                 if (mediaHandler.isWorking()) {
+                    mediaHandler.preRender();
                     int rawTexture = mediaHandler.getTexture();
                     if (rawTexture != -1) {
                         RenderSystem.setShaderTexture(0, rawTexture);

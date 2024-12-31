@@ -5,6 +5,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.ApiStatus;
+import org.watermedia.api.player.videolan.VideoPlayer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -92,6 +93,8 @@ public abstract class MediaHandler {
         return -1;
     }
     public void setTime(long value) {
+    }
+    public void preRender() {
     }
     public int getTexture() {
         return -1;

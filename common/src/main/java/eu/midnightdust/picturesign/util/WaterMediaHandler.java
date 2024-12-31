@@ -1,19 +1,21 @@
 package eu.midnightdust.picturesign.util;
 
-import me.srrapero720.watermedia.api.player.PlayerAPI;
-import me.srrapero720.watermedia.api.player.SyncBasePlayer;
-import me.srrapero720.watermedia.api.player.SyncMusicPlayer;
-import me.srrapero720.watermedia.api.player.SyncVideoPlayer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.lwjgl.opengl.GL11;
+import org.watermedia.api.player.PlayerAPI;
+import org.watermedia.api.player.videolan.BasePlayer;
+import org.watermedia.api.player.videolan.MusicPlayer;
+import org.watermedia.api.player.videolan.VideoPlayer;
+
+import java.net.URI;
 
 import static eu.midnightdust.picturesign.PictureSignClient.client;
 
 public class WaterMediaHandler extends MediaHandler {
-    private SyncBasePlayer player;
+    private BasePlayer player;
 
     public WaterMediaHandler(Identifier id, BlockPos pos) {
         super(id, pos);
@@ -57,10 +59,10 @@ public class WaterMediaHandler extends MediaHandler {
 
     @Override
     public void play(String url, boolean isVideo) {
-        this.player = isVideo ? new SyncVideoPlayer(client) : new SyncMusicPlayer();
+        this.player = isVideo ? new VideoPlayer(client) : new MusicPlayer();
         mediaHandlers.put(id, this);
         if (player.isBroken()) return;
-        player.start(url);
+        player.start(URI.create(url));
         this.playbackStarted = true;
     }
     @Override
@@ -80,10 +82,15 @@ public class WaterMediaHandler extends MediaHandler {
         player.seekTo(value);
     }
     @Override
+    public void preRender() {
+        if (player instanceof VideoPlayer videoPlayer) {
+            videoPlayer.preRender();
+        }
+    }
+    @Override
     public int getTexture() {
-        if (player instanceof SyncVideoPlayer videoPlayer) {
-            int tex = videoPlayer.getGlTexture();
-            if (GL11.glIsTexture(tex)) return tex;
+        if (player instanceof VideoPlayer videoPlayer) {
+            return videoPlayer.texture();
         }
         return -1;
     }

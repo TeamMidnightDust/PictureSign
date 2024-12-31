@@ -35,6 +35,9 @@
   "recommends": {
     "watermedia": "*"
   },
+  "breaks": {
+    "watermedia": "<2.1.0"
+  },
   "mixins": [
     "picturesign.mixins.json"
   ]

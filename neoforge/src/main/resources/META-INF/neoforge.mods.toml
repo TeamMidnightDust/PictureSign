@@ -16,21 +16,21 @@ Use signs to display custom images and videos completely client-side!
 [[mixins]]
 config = "picturesign.mixins.json"
 
-[[dependencies.visualoverhaul]]
+[[dependencies.picturesign]]
 modId = "neoforge"
 mandatory = true
 versionRange = "[21.0,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.visualoverhaul]]
+[[dependencies.picturesign]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.21,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.visualoverhaul]]
+[[dependencies.picturesign]]
 modId = "midnightlib"
 mandatory = true
 versionRange = "[1.0,)"
