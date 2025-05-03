@@ -2,7 +2,6 @@ package eu.midnightdust.picturesign.util;
 
 import eu.midnightdust.picturesign.PictureSignClient;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;
@@ -10,11 +9,12 @@ import net.minecraft.util.Identifier;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.URL;
+import java.net.URI;
 import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
 
 import static eu.midnightdust.picturesign.PictureSignClient.MOD_ID;
+import static eu.midnightdust.picturesign.PictureSignClient.client;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class PictureDownloader {
@@ -71,8 +71,8 @@ public class PictureDownloader {
 
         service.submit(() -> {
             try {
-                BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-                File file = File.createTempFile("."+MOD_ID, "temp");
+                BufferedInputStream in = new BufferedInputStream(URI.create(url).toURL().openStream());
+                File file = File.createTempFile(".%s".formatted(MOD_ID), "temp");
                 file.deleteOnExit();
 
                 BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
@@ -93,7 +93,7 @@ public class PictureDownloader {
                     data.identifier = texture;
                 }
 
-                if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished downloading picture: " + url);
+                if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished downloading picture: {}", url);
 
             } catch (IOException error) {
                 PictureSignClient.LOGGER.error("Error downloading picture: " + error);
@@ -102,7 +102,7 @@ public class PictureDownloader {
     }
     private void loadLocalPicture(String url) {
         String realPath = url.replace("file:", "");
-        if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Started loading local picture: " + url);
+        if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Started loading local picture: {}", url);
 
         this.cache.put(url, new PictureData(url));
         service.submit(() -> {
@@ -115,11 +115,11 @@ public class PictureDownloader {
                 }
 
             } catch (IOException error) {
-                PictureSignClient.LOGGER.error("Error loading local picture: " + error);
+                PictureSignClient.LOGGER.error("Error loading local picture: {}", String.valueOf(error));
             }
         });
 
-        if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished loading local picture: " + url);
+        if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished loading local picture: {}", url);
     }
     private void loadResourcePackTexture(String url) {
         String realIdentifierPath = url.replace("rp:", "");
@@ -128,7 +128,7 @@ public class PictureDownloader {
         if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Started loading resource pack picture: " + url);
         Identifier id = Identifier.tryParse(realIdentifierPath);
         if (id == null) {
-            PictureSignClient.LOGGER.error("Unable to locate resource texture: " + url);
+            PictureSignClient.LOGGER.error("Unable to locate resource texture: {}", url);
             return;
         }
 
@@ -140,7 +140,7 @@ public class PictureDownloader {
             }
         });
 
-        if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished loading resource pack picture: " + url);
+        if (PictureSignConfig.debug) PictureSignClient.LOGGER.info("Finished loading resource pack picture: {}", url);
     }
 
     private static Identifier convert2png(File file) throws IOException {
@@ -154,8 +154,9 @@ public class PictureDownloader {
         NativeImage nativeImage = NativeImage.read(inputStream);
         NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(nativeImage);
 
-        return MinecraftClient.getInstance().getTextureManager().registerDynamicTexture("picturesign/image",
-                nativeImageBackedTexture);
+        Identifier textureId = PictureSignClient.id("picturesign/image_%s".formatted(file.hashCode()));
+        client.getTextureManager().registerTexture(textureId, nativeImageBackedTexture);
+        return textureId;
     }
 }
 

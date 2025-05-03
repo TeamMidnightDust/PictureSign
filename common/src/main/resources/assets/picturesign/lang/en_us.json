@@ -1,6 +1,6 @@
 {
 	"picturesign.midnightconfig.title":"PictureSign Config",
-	"picturesign.midnightconfig.category.1general":"General",
+	"picturesign.midnightconfig.category.general":"General",
 	"picturesign.midnightconfig.category.advanced":"Advanced",
 	
 	"picturesign.midnightconfig.enabled":"Enable Pictures",
@@ -17,7 +17,7 @@
 	"picturesign.midnightconfig.signRenderDistance":"Sign render distance",
 	"picturesign.midnightconfig.safeMode":"Safe mode",
 	"picturesign.midnightconfig.safeMode.tooltip":"Only load images from trusted providers",
-	"picturesign.midnightconfig.ebeWarning":"§cIf you are using the mod 'Enhanced Block Entities' make sure to disable anything sign-related in it's config!",
+	"picturesign.midnightconfig.ebeWarning":"§cYou are using the mod 'Enhanced Block Entities' – make sure to disable anything sign-related in it's config!",
 	"picturesign.midnightconfig.safeProviders":"Safe Image Providers",
 	"picturesign.midnightconfig.safeGifProviders":"Safe GIF Providers",
 	"picturesign.midnightconfig.safeMultimediaProviders":"Safe Multimedia Providers",

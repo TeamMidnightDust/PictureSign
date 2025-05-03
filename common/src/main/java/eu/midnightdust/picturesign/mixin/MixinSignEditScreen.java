@@ -23,14 +23,14 @@ import static eu.midnightdust.picturesign.PictureSignClient.id;
 
 @Mixin(AbstractSignEditScreen.class)
 public abstract class MixinSignEditScreen extends Screen {
-    @Shadow @Final private SignBlockEntity blockEntity;
+    @Shadow @Final protected SignBlockEntity blockEntity;
     @Shadow @Final private String[] messages;
     @Shadow @Final private boolean front;
 
     @Unique private static final Identifier PICTURESIGN_ICON_TEXTURE = id("icon/picturesign");
     @Unique private static final Identifier CLIPBOARD_ICON_TEXTURE = id("icon/clipboard");
     @Unique private static final Identifier TRASHBIN_ICON_TEXTURE = id("icon/trashbin");
-    @Unique private static boolean switchScreen = false;
+    @Unique private static boolean picturesign$switchScreen = false;
 
     protected MixinSignEditScreen(Text title) {
         super(title);
@@ -61,7 +61,7 @@ public abstract class MixinSignEditScreen extends Screen {
             this.addDrawableChild(trashbinBuilder);
 
             TextIconButtonWidget picturesignBuilder = TextIconButtonWidget.builder(Text.empty(), (buttonWidget) -> {
-                switchScreen = true;
+                picturesign$switchScreen = true;
                 Objects.requireNonNull(client).setScreen(new PictureSignHelperScreen(this.blockEntity, front, false));
             }, true).texture(PICTURESIGN_ICON_TEXTURE, 16, 16).dimension(20, 20).build();
             picturesignBuilder.setPosition(this.width - 40, this.height - 40);
@@ -70,8 +70,8 @@ public abstract class MixinSignEditScreen extends Screen {
     }
     @Inject(at = @At("HEAD"), method = "removed", cancellable = true)
     private void picturesign$removed(CallbackInfo ci) {
-        if (switchScreen) {
-            switchScreen = false;
+        if (picturesign$switchScreen) {
+            picturesign$switchScreen = false;
             ci.cancel();
         }
     }

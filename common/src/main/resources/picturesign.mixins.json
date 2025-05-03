@@ -4,7 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "client": [
     "MixinSignBlockEntityRenderer",
-    "MixinHangingSignBlockEntityRenderer",
+    "MixinAbstractSignBlockEntityRenderer",
     "MixinSignEditScreen",
     "MixinSignBlockEntity"
   ],

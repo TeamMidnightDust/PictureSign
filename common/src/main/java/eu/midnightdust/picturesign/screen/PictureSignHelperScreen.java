@@ -22,11 +22,9 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TextIconButtonWidget;
-import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.model.Model;
+import net.minecraft.client.render.*;
+import net.minecraft.client.render.block.entity.AbstractSignBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.SignBlockEntityRenderer;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
@@ -51,7 +49,7 @@ public class PictureSignHelperScreen extends Screen {
     private static final Identifier CLIPBOARD_ICON_TEXTURE = id("icon/clipboard");
     private static final Identifier TRASHBIN_ICON_TEXTURE = id("icon/trashbin");
     private final SignBlockEntity sign;
-    private SignBlockEntityRenderer.SignModel model;
+    private Model model;
     protected String[] text;
     private final boolean front;
     private final boolean isHanging;
@@ -166,7 +164,7 @@ public class PictureSignHelperScreen extends Screen {
         pictureWidgets.add(posYWidget);
         pictureWidgets.add(posZWidget);
         if (text[2].matches("(.*\\d:.*\\d:.*\\d)")) addRotationWidgets();
-        this.model = SignBlockEntityRenderer.createSignModel(this.client.getEntityModelLoader(), AbstractSignBlock.getWoodType(sign.getCachedState().getBlock()));
+        this.model = SignBlockEntityRenderer.createSignModel(this.client.getLoadedEntityModels(), this.signType, !isHanging);
     }
     public void applyPosition(String position, int index) {
         String[] dimensions = new String[5];
@@ -338,7 +336,7 @@ public class PictureSignHelperScreen extends Screen {
                 }
 
                 float n = (float)(-this.client.textRenderer.getWidth(string) / 2);
-                this.client.textRenderer.draw(string, n, (float)(m * 10 - this.text.length * 5), i, false, matrix4f, immediate, TextRenderer.TextLayerType.NORMAL, 0, 15728880, false);
+                this.client.textRenderer.draw(Text.of(string), n, (float)(m * 10 - this.text.length * 5), i, false, matrix4f, immediate, TextRenderer.TextLayerType.NORMAL, 0, 15728880, false);
             }
         }
 
@@ -373,11 +371,9 @@ public class PictureSignHelperScreen extends Screen {
             matrices.scale(0.6666667F, -0.6666667F, -0.6666667F);
 
             SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getSignTextureId(AbstractSignBlock.getWoodType(state.getBlock()));
-            SignBlockEntityRenderer.SignModel var10002 = this.model;
-            Objects.requireNonNull(var10002);
-            VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(immediate, var10002::getLayer);
-            this.model.stick.visible = bl;
-            this.model.root.render(matrices, vertexConsumer, 15728880, OverlayTexture.DEFAULT_UV);
+            Objects.requireNonNull(model);
+            VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(immediate, model::getLayer);
+            this.model.render(matrices, vertexConsumer, 15728880, OverlayTexture.DEFAULT_UV);
             matrices.pop();
             matrices.translate(0.0, 0.3333333432674408, 0.046666666865348816);
             matrices.scale(0.010416667F, -0.010416667F, 0.010416667F);
@@ -385,7 +381,7 @@ public class PictureSignHelperScreen extends Screen {
         else {
             MatrixStack matrices = context.getMatrices();
             matrices.scale(4.5F, 4.5F, 1.0F);
-            context.drawTexture(Identifier.ofVanilla("textures/gui/hanging_signs/" + this.signType.name() + ".png"), -8, -8, 0.0F, 0.0F, 16, 16, 16, 16);
+            context.drawTexture(RenderLayer::getGuiTextured, Identifier.ofVanilla("textures/gui/hanging_signs/" + this.signType.name() + ".png"), -8, -8, 0.0F, 0.0F, 16, 16, 16, 16);
         }
     }
 

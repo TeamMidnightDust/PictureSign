@@ -19,8 +19,8 @@ public class PictureSignClient {
     public static final String MOD_ID = "picturesign";
     public static String[] clipboard = new String[4];
     public static final MinecraftClient client = MinecraftClient.getInstance();
-    public static final KeyBinding BINDING_COPY_SIGN = new KeyBinding("key."+MOD_ID+".copy_sign",
-            InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_U, "key.categories."+MOD_ID);
+    public static final KeyBinding BINDING_COPY_SIGN = new KeyBinding("key.%s.copy_sign".formatted(MOD_ID),
+            InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_U, "key.categories.%s".formatted(MOD_ID));
 
     public static void init() {
         PictureSignConfig.init(MOD_ID, PictureSignConfig.class);

@@ -31,17 +31,17 @@ public abstract class MixinSignBlockEntityRenderer implements BlockEntityRendere
         psRenderer = new PictureSignRenderer();
     }
 
-    @Inject(at = @At("HEAD"), method = "render")
-    public void ps$onRender(SignBlockEntity sign, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, CallbackInfo ci) {
-        if (PictureSignConfig.enabled && psRenderer != null) {
-            if (isCandidate(sign, true) && isNotOfType(sign, PictureSignType.NONE, true)) psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, true);
-            if (isCandidate(sign, false) && isNotOfType(sign, PictureSignType.NONE, false)) psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, false);
-        }
-    }
-    @Inject(at = @At("HEAD"), method = "shouldRender", cancellable = true)
-    private static void shouldRender(BlockPos pos, int signColor, CallbackInfoReturnable<Boolean> cir) {
-        if (PictureSignConfig.enabled && client.world != null && hasPicture((SignBlockEntity) client.world.getBlockEntity(pos))) cir.setReturnValue(true);
-    }
+//    @Inject(at = @At("HEAD"), method = "render")
+//    public void ps$onRender(SignBlockEntity sign, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, CallbackInfo ci) {
+//        if (PictureSignConfig.enabled && psRenderer != null) {
+//            if (isCandidate(sign, true) && isNotOfType(sign, PictureSignType.NONE, true)) psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, true);
+//            if (isCandidate(sign, false) && isNotOfType(sign, PictureSignType.NONE, false)) psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, false);
+//        }
+//    }
+//    @Inject(at = @At("HEAD"), method = "shouldRender", cancellable = true)
+//    private static void shouldRender(BlockPos pos, int signColor, CallbackInfoReturnable<Boolean> cir) {
+//        if (PictureSignConfig.enabled && client.world != null && hasPicture((SignBlockEntity) client.world.getBlockEntity(pos))) cir.setReturnValue(true);
+//    }
     @Unique
     @Override
     public int getRenderDistance() {

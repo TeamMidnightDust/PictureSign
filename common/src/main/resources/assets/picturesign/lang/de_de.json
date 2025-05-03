@@ -13,7 +13,7 @@
 	"picturesign.midnightconfig.signRenderDistance":"Schildsichtweite",
 	"picturesign.midnightconfig.safeMode":"Sicherer Modus",
 	"picturesign.midnightconfig.safeMode.tooltip":"Lädt nur Bilder von vertrauten Seiten",
-	"picturesign.midnightconfig.ebeWarning":"§cWenn du die Mod 'Enhanced Block Entities' benutzt, stelle sicher, dass du alles in Relation zu Schildern in der EBE Config deaktiviert hast!",
+	"picturesign.midnightconfig.ebeWarning":"§cDu benutzt die Mod 'Enhanced Block Entities' – stelle sicher, dass du alles in Relation zu Schildern in der EBE Config deaktiviert hast!",
 	"picturesign.midnightconfig.safeProviders":"Sichere Bildanbieter",
 	"picturesign.midnightconfig.safeGifProviders":"Sichere GIF-Anbieter",
 	"picturesign.midnightconfig.safeMultimediaProviders":"Sichere Multimedia-Anbieter",
@@ -26,7 +26,7 @@
 	"key.picturesign.copy_sign": "Text eines Schildes kopieren",
 	"key.picturesign.edit_sign":"Schild bearbeiten",
 
-	"picturesign.midnightconfig.category.1general": "Generell",
+	"picturesign.midnightconfig.category.general": "Generell",
 	"picturesign.midnightconfig.category.advanced": "Fortgeschritten",
 	"picturesign.midnightconfig.fullBrightPicture": "Höchste Helligkeit",
 	"picturesign.midnightconfig.fullBrightPicture.tooltip": "Sorgt dafür, dass Bilder immer vollkommen beleuchtet dargestellt werden",

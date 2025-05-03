@@ -15,9 +15,9 @@ import eu.midnightdust.picturesign.util.records.PictureOffset;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
@@ -32,7 +32,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 import java.util.Iterator;
@@ -41,7 +40,6 @@ import static eu.midnightdust.picturesign.PictureSignClient.client;
 import static eu.midnightdust.picturesign.PictureSignClient.id;
 import static eu.midnightdust.picturesign.util.PictureSignType.GIF;
 import static eu.midnightdust.picturesign.util.PictureSignType.PICTURE;
-import static net.minecraft.client.texture.TextureManager.MISSING_IDENTIFIER;
 
 public class PictureRenderer {
     private boolean isSafeUrl;
@@ -150,9 +148,9 @@ public class PictureRenderer {
         int l = PictureSignConfig.fullBrightPicture ? 15728880 : light;
         if (PlatformFunctions.isModLoaded("iris") && IrisCompat.isShaderPackInUse())
             RenderSystem.setShader(PictureSignConfig.pictureShader.program);
-        else RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapProgram);
+        else RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR_TEX_LIGHTMAP);
 
-        Identifier texture = getMissingTexture();
+        Identifier texture = PictureSignConfig.missingImageMode.missingTextureId;
         if (errorMessage == null) {
             if (type == PICTURE) {
                 assert data != null;
@@ -222,14 +220,6 @@ public class PictureRenderer {
         matrix.translate(0, 0, 0.025f);
         textRenderer.draw(text, 1, wrappedY + 1, 0x555555, false,  matrix, vertices, TextRenderer.TextLayerType.POLYGON_OFFSET, 0, 15728880);
         matrix.translate(0, 0, -0.025f);
-    }
-    private static final Identifier BLACK_TEXTURE = id("textures/black.png");
-    public @Nullable Identifier getMissingTexture() {
-        return switch (PictureSignConfig.missingImageMode) {
-            case BLACK -> BLACK_TEXTURE;
-            case MISSING_TEXTURE -> MISSING_IDENTIFIER;
-            default -> null;
-        };
     }
     public void checkJsonUrlSafety(String jsonUrl) {
         isSafeJsonUrl = false;
