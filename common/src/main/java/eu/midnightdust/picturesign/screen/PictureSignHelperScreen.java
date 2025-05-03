@@ -5,12 +5,7 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.util.NetworkUtil;
 import eu.midnightdust.picturesign.util.PictureSignType;
 import eu.midnightdust.picturesign.util.PictureURLUtils;
-import net.minecraft.block.AbstractSignBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HangingSignBlock;
-import net.minecraft.block.SignBlock;
-import net.minecraft.block.WallHangingSignBlock;
-import net.minecraft.block.WoodType;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -164,7 +159,7 @@ public class PictureSignHelperScreen extends Screen {
         pictureWidgets.add(posYWidget);
         pictureWidgets.add(posZWidget);
         if (text[2].matches("(.*\\d:.*\\d:.*\\d)")) addRotationWidgets();
-        this.model = SignBlockEntityRenderer.createSignModel(this.client.getLoadedEntityModels(), this.signType, !isHanging);
+        this.model = SignBlockEntityRenderer.createSignModel(this.client.getLoadedEntityModels(), this.signType, !(sign.getCachedState().getBlock() instanceof WallSignBlock));
     }
     public void applyPosition(String position, int index) {
         String[] dimensions = new String[5];
