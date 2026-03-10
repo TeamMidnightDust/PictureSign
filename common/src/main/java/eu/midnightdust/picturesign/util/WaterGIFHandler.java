@@ -41,8 +41,7 @@ public class WaterGIFHandler extends GIFHandler {
     }
     @Override
     public int getTexture() {
-        return player.getRenderer().texture(tick,
-                (MathAPI.tickToMs(client.getRenderTickCounter().getTickDelta(true))), true);
+        return player.getRenderer().texture(tick, client.getRenderTickCounter().getTickProgress(true), true);
     }
     @Override
     public boolean isWorking() {

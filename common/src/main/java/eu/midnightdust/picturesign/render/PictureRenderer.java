@@ -1,27 +1,24 @@
 package eu.midnightdust.picturesign.render;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import eu.midnightdust.lib.util.PlatformFunctions;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
-import eu.midnightdust.picturesign.util.GIFHandler;
-import eu.midnightdust.picturesign.util.IrisCompat;
-import eu.midnightdust.picturesign.util.MediaHandler;
-import eu.midnightdust.picturesign.util.PictureDownloader;
-import eu.midnightdust.picturesign.util.PictureSignType;
-import eu.midnightdust.picturesign.util.PictureURLUtils;
+import eu.midnightdust.picturesign.util.*;
 import eu.midnightdust.picturesign.util.records.MediaJsonInfo;
 import eu.midnightdust.picturesign.util.records.PictureDimensions;
 import eu.midnightdust.picturesign.util.records.PictureOffset;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.gl.BufferManager;
+import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.render.*;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.OrderedText;
@@ -146,11 +143,12 @@ public class PictureRenderer {
         Tessellator tessellator = Tessellator.getInstance();
 
         int l = PictureSignConfig.fullBrightPicture ? 15728880 : light;
-        if (PlatformFunctions.isModLoaded("iris") && IrisCompat.isShaderPackInUse())
-            RenderSystem.setShader(PictureSignConfig.pictureShader.program);
-        else RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR_TEX_LIGHTMAP);
+//        if (PlatformFunctions.isModLoaded("iris") && IrisCompat.isShaderPackInUse())
+//            RenderSystem.setShader(PictureSignConfig.pictureShader.program);
+//        else RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR_TEX_LIGHTMAP);
 
         Identifier texture = PictureSignConfig.missingImageMode.missingTextureId;
+        int rawTexture = -1;
         if (errorMessage == null) {
             if (type == PICTURE) {
                 assert data != null;
@@ -158,27 +156,31 @@ public class PictureRenderer {
             } else if (type.isVideo && mediaHandler != null) {
                 if (mediaHandler.isWorking()) {
                     mediaHandler.preRender();
-                    int rawTexture = mediaHandler.getTexture();
+                    rawTexture = mediaHandler.getTexture();
                     if (rawTexture != -1) {
-                        RenderSystem.setShaderTexture(0, rawTexture);
+                        //RenderSystem.setShaderTexture(0, rawTexture);
                         texture = RAW_TEXTURE;
                     }
                 }
             } else if (gifHandler != null) {
                 if (gifHandler.isWorking()) {
-                    RenderSystem.setShaderTexture(0, gifHandler.getTexture());
+                    rawTexture = gifHandler.getTexture();
+                    //RenderSystem.setShaderTexture(0, gifHandler.getTexture());
                     texture = RAW_TEXTURE;
                 }
             }
         }
 
         if (texture == null) return;
-        if (texture != RAW_TEXTURE) RenderSystem.setShaderTexture(0, texture);
+        if (texture != RAW_TEXTURE) RenderSystem.setShaderTexture(0, client.getTextureManager().getTexture(texture).getGlTexture());
 
-        if (PictureSignConfig.translucency) RenderSystem.enableBlend();
-        else RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(true);
+//        if (PictureSignConfig.translucency) RenderSystem.enableBlend();
+//        else RenderSystem.disableBlend();
+//        RenderSystem.enableDepthTest();
+//        RenderSystem.depthMask(true);
+        //if (texture == RAW_TEXTURE) return;
+
+        RenderLayer renderLayer = texture != RAW_TEXTURE ? RenderLayerUtil.buildRenderLayer(texture, PictureSignConfig.translucency) : RenderLayerUtil.buildRenderLayer(videoId, rawTexture, PictureSignConfig.translucency);
 
         matrixStack.push();
         matrixStack.translate(offset.xOffset() + dimensions.x(), dimensions.y(), offset.zOffset() + dimensions.z());
@@ -186,23 +188,28 @@ public class PictureRenderer {
         matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(dimensions.xRot()));
         matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(dimensions.zRot()));
 
+
+
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT);
+        //BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT);
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR_LIGHT);
 
-        buffer.vertex(matrix4f, dimensions.width(), 0.0F, 1.0F).color(255, 255, 255, 255).texture(1.0F, 1.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, dimensions.width(), 0.0F, 1.0F).texture(1.0F, 1.0F).color(255, 255, 255, 255).light(l).overlay(overlay);
 
-        buffer.vertex(matrix4f, dimensions.width(), dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(1.0F, 0.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, dimensions.width(), dimensions.height(), 1.0F).texture(1.0F, 0.0F).color(255, 255, 255, 255).light(l).overlay(overlay);
 
-        buffer.vertex(matrix4f, 0.0F, dimensions.height(), 1.0F).color(255, 255, 255, 255).texture(0.0F, 0.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, 0.0F, dimensions.height(), 1.0F).texture(0.0F, 0.0F).color(255, 255, 255, 255).light(l).overlay(overlay);
 
-        buffer.vertex(matrix4f, 0.0F, 0.0F, 1.0F).color(255, 255, 255, 255).texture(0.0F, 1.0F).light(l).overlay(overlay);
+        buffer.vertex(matrix4f, 0.0F, 0.0F, 1.0F).texture(0.0F, 1.0F).color(255, 255, 255, 255).light(l).overlay(overlay);
 
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        //BufferRenderer.drawWithGlobalProgram(buffer.end());
+        renderLayer.draw(buffer.end());
+        tessellator.clear();
 
         if (errorMessage != null) renderErrorMessage(errorMessage, client.textRenderer, matrixStack, vertices, dimensions.width(), dimensions.height());
         matrixStack.pop();
-        RenderSystem.disableBlend();
-        RenderSystem.disableDepthTest();
+        //RenderSystem.disableBlend();
+        //RenderSystem.disableDepthTest();
     }
     private static void renderErrorMessage(Text error, @NotNull TextRenderer textRenderer, @NotNull MatrixStack matrices, VertexConsumerProvider vertices, float width, float height) {
         float scale = Math.min(width, height) / 100;

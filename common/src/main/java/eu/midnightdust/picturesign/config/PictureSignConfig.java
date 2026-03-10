@@ -3,8 +3,6 @@ package eu.midnightdust.picturesign.config;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
 import eu.midnightdust.lib.util.PlatformFunctions;
-import net.minecraft.client.gl.ShaderProgramKey;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -76,15 +74,13 @@ public class PictureSignConfig extends MidnightConfig {
         @Nullable public final Identifier missingTextureId;
     }
     public enum PictureShader {
-        PosColTexLight(ShaderProgramKeys.POSITION_COLOR_TEX_LIGHTMAP),
-        RenderTypeCutout(ShaderProgramKeys.RENDERTYPE_CUTOUT),
-        PosTex(ShaderProgramKeys.POSITION_TEX),
-        PosTexCol(ShaderProgramKeys.POSITION_TEX_COLOR);
+        PosColTexLight(),
+        RenderTypeCutout(),
+        PosTex(),
+        PosTexCol();
 
-        PictureShader(ShaderProgramKey program) {
-            this.program = program;
+        PictureShader() {
         }
-        public final ShaderProgramKey program;
     }
 
     public static void init(String modid, Class<? extends MidnightConfig> config) {

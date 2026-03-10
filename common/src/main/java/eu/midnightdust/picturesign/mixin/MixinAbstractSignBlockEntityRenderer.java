@@ -8,6 +8,7 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.AbstractSignBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,11 +22,11 @@ import static eu.midnightdust.picturesign.util.PictureSignType.isNotOfType;
 public abstract class MixinAbstractSignBlockEntityRenderer implements BlockEntityRenderer<SignBlockEntity> {
     @Unique PictureSignRenderer picturesign$psRenderer = new PictureSignRenderer();
 
-    @Inject(at = @At("HEAD"), method = "render(Lnet/minecraft/block/entity/SignBlockEntity;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;II)V")
-    public void ps$onRender(SignBlockEntity sign, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), method = "render(Lnet/minecraft/block/entity/SignBlockEntity;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;IILnet/minecraft/util/math/Vec3d;)V")
+    public void ps$onRender(SignBlockEntity sign, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, Vec3d vec3d, CallbackInfo ci) {
         if (PictureSignConfig.enabled) {
-            if (isCandidate(sign, true) && isNotOfType(sign, PictureSignType.NONE, true)) picturesign$psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, true);
-            if (isCandidate(sign, false) && isNotOfType(sign, PictureSignType.NONE, false)) picturesign$psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, false);
+            for (boolean front : new boolean[]{true, false})
+                if (isCandidate(sign, front) && isNotOfType(sign, PictureSignType.NONE, true)) picturesign$psRenderer.render(sign, matrixStack, vertexConsumerProvider, light, overlay, front);
         }
     }
     @Unique

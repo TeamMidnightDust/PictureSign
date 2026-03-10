@@ -152,9 +152,9 @@ public class PictureDownloader {
         InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
 
         NativeImage nativeImage = NativeImage.read(inputStream);
-        NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(nativeImage);
-
         Identifier textureId = PictureSignClient.id("picturesign/image_%s".formatted(file.hashCode()));
+        NativeImageBackedTexture nativeImageBackedTexture = new NativeImageBackedTexture(textureId::toString, nativeImage);
+
         client.getTextureManager().registerTexture(textureId, nativeImageBackedTexture);
         return textureId;
     }
