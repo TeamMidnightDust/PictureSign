@@ -1,5 +1,6 @@
 package eu.midnightdust.picturesign.util;
 
+//? if >= 1.21.4 {
 import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.textures.TextureFormat;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
@@ -44,3 +45,4 @@ public class RenderLayerUtil {
         }
     }
 }
+//?}

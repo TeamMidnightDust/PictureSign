@@ -1,5 +1,7 @@
 package eu.midnightdust.picturesign.mixin;
 
+//? if >= 1.21.4 {
+import eu.midnightdust.core.MidnightLib;
 import eu.midnightdust.picturesign.config.PictureSignConfig;
 import eu.midnightdust.picturesign.render.PictureSignRenderer;
 import eu.midnightdust.picturesign.util.PictureSignType;
@@ -41,3 +43,11 @@ public abstract class MixinAbstractSignBlockEntityRenderer implements BlockEntit
         return PictureSignConfig.enabled && PictureSignType.hasPicture(sign);
     }
 }
+//?} else {
+/*import eu.midnightdust.core.MidnightLib;
+import org.spongepowered.asm.mixin.Mixin;
+
+@Mixin(MidnightLib.class)
+public class MixinAbstractSignBlockEntityRenderer {}
+*///?}
+

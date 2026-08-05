@@ -171,7 +171,7 @@ public class PictureSignHelperScreen extends Screen {
         pictureWidgets.add(posYWidget);
         pictureWidgets.add(posZWidget);
         if (text[2].matches("(.*\\d:.*\\d:.*\\d)")) addRotationWidgets();
-        this.model = SignRenderer.createSignModel(this.minecraft.getEntityModels(), this.signType, !(sign.getBlockState().getBlock() instanceof WallSignBlock));
+        this.model = SignRenderer.createSignModel(this.minecraft.getEntityModels(), this.signType /*? if >= 1.21.4 {*/ , !(sign.getBlockState().getBlock() instanceof WallSignBlock) /*?}*/);
     }
     public void applyPosition(String position, int index) {
         String[] dimensions = new String[5];
@@ -344,6 +344,7 @@ public class PictureSignHelperScreen extends Screen {
                 }
 
                 float n = (float)(-this.minecraft.font.width(string) / 2);
+                //~ if >= 1.21.4 'string' -> 'Component.nullToEmpty(string)'
                 this.minecraft.font.drawInBatch(Component.nullToEmpty(string), n, (float)(m * 10 - this.text.length * 5), i, false, matrix4f, immediate, Font.DisplayMode.NORMAL, 0, 15728880, false);
             }
         }
@@ -389,7 +390,7 @@ public class PictureSignHelperScreen extends Screen {
         else {
             PoseStack matrices = context.pose();
             matrices.scale(4.5F, 4.5F, 1.0F);
-            context.blit(RenderType::guiTextured, ResourceLocation.withDefaultNamespace("textures/gui/hanging_signs/" + this.signType.name() + ".png"), -8, -8, 0.0F, 0.0F, 16, 16, 16, 16);
+            context.blit(/*? if >= 1.21.4 {*/ RenderType::guiTextured, /*?}*/ResourceLocation.withDefaultNamespace("textures/gui/hanging_signs/" + this.signType.name() + ".png"), -8, -8, 0.0F, 0.0F, 16, 16, 16, 16);
         }
     }
 

@@ -35,6 +35,10 @@ import static eu.midnightdust.picturesign.PictureSignClient.id;
 import static eu.midnightdust.picturesign.util.PictureSignType.GIF;
 import static eu.midnightdust.picturesign.util.PictureSignType.PICTURE;
 
+//? if < 1.21.4 {
+import net.minecraft.client.renderer.GameRenderer;
+//?}
+
 public class PictureRenderer {
     private boolean isSafeUrl;
     private boolean isSafeJsonUrl;
@@ -115,14 +119,18 @@ public class PictureRenderer {
             if (data == null || data.identifier == null) errorMessage = IMAGE_NOT_FOUND;
         }
         else if (mediaHandler != null) {
-            if (!mediaHandler.isReady()) errorMessage = MISSING_VLC;
-            else {
-                if (!mediaHandler.playbackStarted && !mediaHandler.hasMedia()) {
-                    mediaHandler.play(url, type.isVideo);
-                    if (info != null && info.start() > 0) mediaHandler.setTime(info.start());
-                    mediaHandler.setRepeat(type.isLooped);
+            if (!mediaHandler.isWorking()) {
+                if (!mediaHandler.hasMedia(url)) mediaHandler.load(url);
+                errorMessage = MISSING_VLC;
+                if (mediaHandler.isLoaded()) {
+                    mediaHandler.play(type.isVideo);
+                    if (mediaHandler.isPlaying()) {
+                        if (info != null && info.start() > 0) mediaHandler.setTime(info.start());
+                        mediaHandler.setRepeat(type.isLooped);
+                    }
                 }
-
+            }
+            else {
                 if (info != null && info.volume() >= 0) mediaHandler.setMaxVolume(info.volume());
                 mediaHandler.setVolumeBasedOnDistance();
                 if (info != null && info.start() > 0 && mediaHandler.getTime() < info.start())
@@ -145,10 +153,11 @@ public class PictureRenderer {
         int l = PictureSignConfig.fullBrightPicture ? 15728880 : light;
 //        if (PlatformFunctions.isModLoaded("iris") && IrisCompat.isShaderPackInUse())
 //            RenderSystem.setShader(PictureSignConfig.pictureShader.program);
-//        else RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR_TEX_LIGHTMAP);
+        //? if < 1.21.4
+        //RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
 
         ResourceLocation texture = PictureSignConfig.missingImageMode.missingTextureId;
-        int rawTexture = -1;
+        long rawTexture = -1;
         if (errorMessage == null) {
             if (type == PICTURE) {
                 assert data != null;
@@ -157,32 +166,29 @@ public class PictureRenderer {
                 if (mediaHandler.isWorking()) {
                     rawTexture = mediaHandler.getTexture();
                     if (rawTexture != -1) {
-                        //RenderSystem.setShaderTexture(0, rawTexture);
                         texture = RAW_TEXTURE;
                     }
                 }
             } else if (gifHandler != null) {
                 if (gifHandler.isWorking()) {
                     rawTexture = gifHandler.getTexture();
-                    //RenderSystem.setShaderTexture(0, gifHandler.getTexture());
                     texture = RAW_TEXTURE;
                 }
             }
         }
 
         if (texture == null) return;
-        if (texture != RAW_TEXTURE) RenderSystem.setShaderTexture(0, Minecraft.getInstance().getTextureManager().getTexture(texture).getTexture());
 
-//        if (PictureSignConfig.translucency) RenderSystem.enableBlend();
-//        else RenderSystem.disableBlend();
-//        RenderSystem.enableDepthTest();
-//        RenderSystem.depthMask(true);
-        //if (texture == RAW_TEXTURE) return;
+        //? if < 1.21.4 {
+        /*if (texture != RAW_TEXTURE) RenderSystem.setShaderTexture(0, Minecraft.getInstance().getTextureManager().getTexture(texture).getId());
+        else RenderSystem.setShaderTexture(0, rawTexture);
+        if (PictureSignConfig.translucency) RenderSystem.enableBlend();
+        else RenderSystem.disableBlend();
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
+        *///?}
 
         Tesselator tessellator = Tesselator.getInstance();
-
-        RenderType renderLayer = texture != RAW_TEXTURE ? RenderLayerUtil.TEXTURED_RENDER_LAYER.apply(texture) : RenderLayerUtil.GL_RENDER_LAYER.apply(videoId, rawTexture);
-        //RenderType renderLayer = RenderType.entityTranslucent(texture, false); //: BLOCK_TRANSLUCENT_CULL_CUSTOM_TEXTURE.apply(texture));
 
         matrixStack.pushPose();
         matrixStack.translate(offset.xOffset() + dimensions.x(), dimensions.y(), offset.zOffset() + dimensions.z());
@@ -191,9 +197,12 @@ public class PictureRenderer {
         matrixStack.mulPose(Axis.ZP.rotationDegrees(dimensions.zRot()));
 
         Matrix4f matrix4f = matrixStack.last().pose();
+        //? if >= 1.21.4 {
+        RenderType renderLayer = texture != RAW_TEXTURE ? RenderLayerUtil.TEXTURED_RENDER_LAYER.apply(texture) : RenderLayerUtil.GL_RENDER_LAYER.apply(videoId, (int) rawTexture);
         VertexConsumer buffer = vertices.getBuffer(renderLayer);
-        //BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
-        overlay = OverlayTexture.NO_OVERLAY;
+        //?} else {
+        /*BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
+        *///?}
 
         buffer.addVertex(matrix4f, dimensions.width(), 0.0F, 1.0F).setColor(255, 255, 255, 255).setUv(1.0F, 1.0F).setLight(l).setNormal(matrixStack.last(), 0, 0, 0);
 
@@ -203,14 +212,17 @@ public class PictureRenderer {
 
         buffer.addVertex(matrix4f, 0.0F, 0.0F, 1.0F).setColor(255, 255, 255, 255).setUv(0.0F, 1.0F).setLight(l).setNormal(matrixStack.last(), 0, 0, 0);
 
-        //BufferRenderer.drawWithGlobalProgram(buffer.end());
-        //renderLayer.draw(buffer.buildOrThrow());
+        //? if < 1.21.4 {
+        /*BufferUploader.drawWithShader(buffer.buildOrThrow());
+        *///?}
         tessellator.clear();
 
         if (errorMessage != null) renderErrorMessage(errorMessage, Minecraft.getInstance().font, matrixStack, vertices, dimensions.width(), dimensions.height());
         matrixStack.popPose();
-        //RenderSystem.disableBlend();
-        //RenderSystem.disableDepthTest();
+        //? if < 1.21.4 {
+        /*RenderSystem.disableBlend();
+        RenderSystem.disableDepthTest();
+        *///?}
     }
 
     private static void renderErrorMessage(Component error, @NotNull Font textRenderer, @NotNull PoseStack matrices, MultiBufferSource vertices, float width, float height) {

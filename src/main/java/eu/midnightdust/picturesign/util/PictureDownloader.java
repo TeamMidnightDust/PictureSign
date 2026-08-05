@@ -154,13 +154,7 @@ public class PictureDownloader {
 
         NativeImage nativeImage = NativeImage.read(inputStream);
         ResourceLocation textureId = PictureSignClient.id("picturesign/image_%s".formatted(file.hashCode()));
-        //System.out.println(123);
-        //var tex = RenderSystem.getDevice().createTexture("uwu", TextureFormat.RGBA8, 16, 16, 1);
-        System.out.println("a");
-        var nativeImageBackedTexture = new PictureTexture(textureId::toString, nativeImage);
-        System.out.println("b");
-        //nativeImageBackedTexture.setPixels(nativeImage);
-        //System.out.println("c");
+        var nativeImageBackedTexture = new DynamicTexture(/*? if >= 1.21.4 {*/textureId::toString,/*?}*/ nativeImage);
 
         Minecraft.getInstance().getTextureManager().register(textureId, nativeImageBackedTexture);
         return textureId;

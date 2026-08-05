@@ -4,6 +4,7 @@ import eu.midnightdust.picturesign.config.PictureSignConfig;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +21,6 @@ public abstract class MediaHandler {
 
     public final ResourceLocation id;
     public final BlockPos pos;
-    public boolean playbackStarted = false;
     public boolean isDeactivated;
     int maxVolume = 100;
 
@@ -85,11 +85,13 @@ public abstract class MediaHandler {
 
     public abstract void restart();
 
-    public abstract void play(String url, boolean isVideo);
+    public abstract void load(String url);
+
+    public abstract void play(boolean isVideo);
 
     public abstract void closePlayer();
 
-    public abstract boolean hasMedia();
+    public abstract boolean isPlaying();
 
     public abstract void setRepeat(boolean value);
 
@@ -97,9 +99,11 @@ public abstract class MediaHandler {
 
     public abstract void setTime(long value);
 
-    public abstract int getTexture();
+    public abstract long getTexture();
 
-    public abstract boolean isReady();
+    public abstract boolean hasMedia(String url);
+
+    public abstract boolean isLoaded();
 
     public abstract boolean isWorking();
 
